@@ -165,4 +165,47 @@ public class SubscriptionControllerTest {
         assert response != null;
         assert response.contains("success");
     }
+
+    @Test
+    public void 구독_상태_변경_성공() {
+        // given - 먼저 구독을 생성
+        String createRequestJson = """
+                {
+                    "serviceId": 1,
+                    "planName": "프리미엄",
+                    "monthlyPrice": 17000,
+                    "billingDate": 15,
+                    "billingCycle": "MONTHLY",
+                    "notes": "가족 공유 중"
+                }
+                """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> createRequest = new HttpEntity<>(createRequestJson, headers);
+
+        String createUrl = "http://localhost:" + port + "/api/v1/subscriptions?userId=" + testUserId;
+        restTemplate.postForObject(createUrl, createRequest, String.class);
+        
+        // 구독 ID (실제로는 생성된 구독의 ID를 사용해야 함)
+        Long subscriptionId = 1L;
+
+        // 상태 변경 요청
+        String statusRequestJson = """
+                {
+                    "isActive": false
+                }
+                """;
+
+        HttpEntity<String> statusRequest = new HttpEntity<>(statusRequestJson, headers);
+
+        // when
+        String statusUrl = "http://localhost:" + port + "/api/v1/subscriptions/" + subscriptionId + "/status";
+        String response = restTemplate.exchange(statusUrl, org.springframework.http.HttpMethod.PATCH, 
+                statusRequest, String.class).getBody();
+
+        // then
+        assert response != null;
+        assert response.contains("success");
+    }
 }

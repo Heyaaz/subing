@@ -1,6 +1,7 @@
 package com.project.subing.controller;
 
 import com.project.subing.dto.common.ApiResponse;
+import com.project.subing.dto.subscription.StatusUpdateRequest;
 import com.project.subing.dto.subscription.SubscriptionRequest;
 import com.project.subing.dto.subscription.SubscriptionResponse;
 import com.project.subing.service.SubscriptionService;
@@ -47,5 +48,13 @@ public class SubscriptionController {
     public ResponseEntity<ApiResponse<Void>> deleteSubscription(@PathVariable Long id) {
         subscriptionService.deleteSubscription(id);
         return ResponseEntity.ok(ApiResponse.success(null, "구독이 삭제되었습니다."));
+    }
+    
+    @PatchMapping("/{id}/status")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> toggleSubscriptionStatus(
+            @PathVariable Long id,
+            @RequestBody StatusUpdateRequest request) {
+        SubscriptionResponse response = subscriptionService.toggleSubscriptionStatus(id, request.getIsActive());
+        return ResponseEntity.ok(ApiResponse.success(response, "구독 상태가 변경되었습니다."));
     }
 }

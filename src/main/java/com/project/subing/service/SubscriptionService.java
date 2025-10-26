@@ -87,6 +87,21 @@ public class SubscriptionService {
         userSubscriptionRepository.delete(subscription);
     }
     
+    public SubscriptionResponse toggleSubscriptionStatus(Long id, Boolean isActive) {
+        UserSubscription subscription = userSubscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("구독을 찾을 수 없습니다."));
+        
+        if (isActive) {
+            subscription.reactivate();
+        } else {
+            subscription.cancel();
+        }
+        
+        UserSubscription savedSubscription = userSubscriptionRepository.save(subscription);
+        
+        return convertToResponse(savedSubscription);
+    }
+    
     private SubscriptionResponse convertToResponse(UserSubscription subscription) {
         return SubscriptionResponse.builder()
                 .id(subscription.getId())
