@@ -1,8 +1,11 @@
 package com.project.subing.controller;
 
 import com.project.subing.domain.user.entity.User;
+import com.project.subing.domain.service.entity.ServiceEntity;
+import com.project.subing.domain.common.ServiceCategory;
 import com.project.subing.repository.UserRepository;
 import com.project.subing.repository.UserSubscriptionRepository;
+import com.project.subing.repository.ServiceRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +35,11 @@ public class SubscriptionControllerTest {
     @Autowired
     private UserSubscriptionRepository userSubscriptionRepository;
 
+    @Autowired
+    private ServiceRepository serviceRepository;
+
     private Long testUserId;
+    private Long testServiceId;
 
     @BeforeEach
     void setUp() {
@@ -44,21 +51,32 @@ public class SubscriptionControllerTest {
                 .build();
         User savedUser = userRepository.save(testUser);
         testUserId = savedUser.getId();
+        
+        // 테스트용 서비스 생성
+        ServiceEntity testService = ServiceEntity.builder()
+                .serviceName("Netflix")
+                .category(ServiceCategory.OTT)
+                .description("스트리밍 서비스")
+                .officialUrl("https://netflix.com")
+                .iconUrl("https://netflix.com/icon.png")
+                .build();
+        ServiceEntity savedService = serviceRepository.save(testService);
+        testServiceId = savedService.getId();
     }
 
     @Test
     public void 구독_추가_성공() {
         // given
-        String requestJson = """
+        String requestJson = String.format("""
                 {
-                    "serviceId": 1,
+                    "serviceId": %d,
                     "planName": "프리미엄",
                     "monthlyPrice": 17000,
                     "billingDate": 15,
                     "billingCycle": "MONTHLY",
                     "notes": "가족 공유 중"
                 }
-                """;
+                """, testServiceId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -87,16 +105,16 @@ public class SubscriptionControllerTest {
     @Test
     public void 구독_수정_성공() {
         // given - 먼저 구독을 생성
-        String createRequestJson = """
+        String createRequestJson = String.format("""
                 {
-                    "serviceId": 1,
+                    "serviceId": %d,
                     "planName": "프리미엄",
                     "monthlyPrice": 17000,
                     "billingDate": 15,
                     "billingCycle": "MONTHLY",
                     "notes": "가족 공유 중"
                 }
-                """;
+                """, testServiceId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -109,16 +127,16 @@ public class SubscriptionControllerTest {
         Long subscriptionId = 1L; // 실제로는 생성된 구독의 ID를 사용해야 함
 
         // 수정 요청
-        String updateRequestJson = """
+        String updateRequestJson = String.format("""
                 {
-                    "serviceId": 1,
+                    "serviceId": %d,
                     "planName": "프리미엄 플러스",
                     "monthlyPrice": 20000,
                     "billingDate": 20,
                     "billingCycle": "MONTHLY",
                     "notes": "업그레이드된 플랜"
                 }
-                """;
+                """, testServiceId);
 
         HttpEntity<String> updateRequest = new HttpEntity<>(updateRequestJson, headers);
 
@@ -135,16 +153,16 @@ public class SubscriptionControllerTest {
     @Test
     public void 구독_삭제_성공() {
         // given - 먼저 구독을 생성
-        String createRequestJson = """
+        String createRequestJson = String.format("""
                 {
-                    "serviceId": 1,
+                    "serviceId": %d,
                     "planName": "프리미엄",
                     "monthlyPrice": 17000,
                     "billingDate": 15,
                     "billingCycle": "MONTHLY",
                     "notes": "가족 공유 중"
                 }
-                """;
+                """, testServiceId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -169,16 +187,16 @@ public class SubscriptionControllerTest {
     @Test
     public void 구독_상태_변경_성공() {
         // given - 먼저 구독을 생성
-        String createRequestJson = """
+        String createRequestJson = String.format("""
                 {
-                    "serviceId": 1,
+                    "serviceId": %d,
                     "planName": "프리미엄",
                     "monthlyPrice": 17000,
                     "billingDate": 15,
                     "billingCycle": "MONTHLY",
                     "notes": "가족 공유 중"
                 }
-                """;
+                """, testServiceId);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
