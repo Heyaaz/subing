@@ -3,9 +3,9 @@ spring:
     name: subing
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/${DB_NAME:subing_db}
-    username: ${DB_USERNAME:subing_user}
-    password: ${DB_PASSWORD:your_password_here}
+    url: jdbc:postgresql://localhost:5432/${DB_NAME}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     
   jpa:
