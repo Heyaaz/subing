@@ -18,8 +18,8 @@ public class StatisticsController {
     @GetMapping("/monthly/{userId}")
     public ResponseEntity<ApiResponse<MonthlyExpenseResponse>> getMonthlyExpense(
             @PathVariable Long userId,
-            @RequestParam(defaultValue = "2024") Integer year,
-            @RequestParam(defaultValue = "10") Integer month) {
+            @RequestParam(defaultValue = "2025") Integer year,
+            @RequestParam(defaultValue = "12") Integer month) {
         
         MonthlyExpenseResponse response = statisticsService.getMonthlyExpense(userId, year, month);
         return ResponseEntity.ok(ApiResponse.success(response, "월별 지출 통계를 조회했습니다."));
