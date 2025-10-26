@@ -28,7 +28,7 @@ public class UserSubscription {
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id", nullable = true) // 임시로 nullable=true로 변경
+    @JoinColumn(name = "service_id", nullable = false)
     private ServiceEntity service;
     
     @Column(length = 100)

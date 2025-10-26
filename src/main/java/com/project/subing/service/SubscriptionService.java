@@ -1,9 +1,11 @@
 package com.project.subing.service;
 
 import com.project.subing.domain.subscription.entity.UserSubscription;
+import com.project.subing.domain.service.entity.ServiceEntity;
 import com.project.subing.domain.user.entity.User;
 import com.project.subing.dto.subscription.SubscriptionRequest;
 import com.project.subing.dto.subscription.SubscriptionResponse;
+import com.project.subing.repository.ServiceRepository;
 import com.project.subing.repository.UserRepository;
 import com.project.subing.repository.UserSubscriptionRepository;
 import lombok.RequiredArgsConstructor;
@@ -20,16 +22,21 @@ public class SubscriptionService {
     
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserRepository userRepository;
+    private final ServiceRepository serviceRepository;
     
     public SubscriptionResponse createSubscription(Long userId, SubscriptionRequest request) {
         // 사용자 조회
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
-        // 구독 생성 (Service 엔티티는 임시로 null 처리)
+        // 서비스 조회
+        ServiceEntity service = serviceRepository.findById(request.getServiceId())
+                .orElseThrow(() -> new RuntimeException("서비스를 찾을 수 없습니다."));
+        
+        // 구독 생성
         UserSubscription subscription = UserSubscription.builder()
                 .user(user)
-                .service(null) // 임시로 null - 나중에 Service 엔티티 연결
+                .service(service)
                 .planName(request.getPlanName())
                 .monthlyPrice(request.getMonthlyPrice())
                 .billingDate(request.getBillingDate())
@@ -41,9 +48,9 @@ public class SubscriptionService {
         
         return SubscriptionResponse.builder()
                 .id(savedSubscription.getId())
-                .serviceName("임시 서비스명") // 나중에 Service 엔티티에서 가져오기
-                .serviceCategory("임시 카테고리")
-                .serviceIcon("임시 아이콘")
+                .serviceName(savedSubscription.getService() != null ? savedSubscription.getService().getServiceName() : "서비스 없음")
+                .serviceCategory(savedSubscription.getService() != null ? savedSubscription.getService().getCategory().toString() : "카테고리 없음")
+                .serviceIcon(savedSubscription.getService() != null ? savedSubscription.getService().getIconUrl() : "")
                 .planName(savedSubscription.getPlanName())
                 .monthlyPrice(savedSubscription.getMonthlyPrice())
                 .billingDate(savedSubscription.getBillingDate())
@@ -105,9 +112,9 @@ public class SubscriptionService {
     private SubscriptionResponse convertToResponse(UserSubscription subscription) {
         return SubscriptionResponse.builder()
                 .id(subscription.getId())
-                .serviceName("임시 서비스명")
-                .serviceCategory("임시 카테고리")
-                .serviceIcon("임시 아이콘")
+                .serviceName(subscription.getService() != null ? subscription.getService().getServiceName() : "서비스 없음")
+                .serviceCategory(subscription.getService() != null ? subscription.getService().getCategory().toString() : "카테고리 없음")
+                .serviceIcon(subscription.getService() != null ? subscription.getService().getIconUrl() : "")
                 .planName(subscription.getPlanName())
                 .monthlyPrice(subscription.getMonthlyPrice())
                 .billingDate(subscription.getBillingDate())
