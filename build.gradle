@@ -45,6 +45,9 @@ dependencies {
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
     
+    // Environment variables
+    implementation 'me.paulschwarz:spring-dotenv:2.5.4'
+    
     // Development
     // developmentOnly 'org.springframework.boot:spring-boot-docker-compose' // 로컬 PostgreSQL 사용으로 제거
     
