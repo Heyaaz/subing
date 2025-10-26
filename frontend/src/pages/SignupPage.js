@@ -32,6 +32,16 @@ const SignupPage = () => {
     }
   };
 
+  // IME 조합 중 이벤트 방지
+  const handleCompositionStart = (e) => {
+    e.target.composing = true;
+  };
+
+  const handleCompositionEnd = (e) => {
+    e.target.composing = false;
+    handleChange(e);
+  };
+
   const validateForm = () => {
     const newErrors = {};
     
@@ -158,6 +168,8 @@ const SignupPage = () => {
                   autoComplete="new-password"
                   value={formData.password}
                   onChange={handleChange}
+                  onCompositionStart={handleCompositionStart}
+                  onCompositionEnd={handleCompositionEnd}
                   className={`input-field ${errors.password ? 'border-red-300 focus:ring-red-500' : ''}`}
                   placeholder="비밀번호를 입력하세요"
                 />
@@ -179,6 +191,8 @@ const SignupPage = () => {
                   autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={handleChange}
+                  onCompositionStart={handleCompositionStart}
+                  onCompositionEnd={handleCompositionEnd}
                   className={`input-field ${errors.confirmPassword ? 'border-red-300 focus:ring-red-500' : ''}`}
                   placeholder="비밀번호를 다시 입력하세요"
                 />

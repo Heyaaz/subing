@@ -42,7 +42,7 @@ export const AuthProvider = ({ children }) => {
       setError(null);
       
       const response = await authService.login(credentials);
-      const userData = response.data.user;
+      const userData = response.data; // 백엔드에서 직접 사용자 정보 반환
       
       setUser(userData);
       return response;
