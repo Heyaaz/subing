@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService } from '../services/subscriptionService';
+import { serviceService } from '../services/serviceService';
 import ErrorMessage from '../components/ErrorMessage';
 import Loading from '../components/Loading';
 
 const SubscriptionPage = () => {
   const [subscriptions, setSubscriptions] = useState([]);
+  const [services, setServices] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
@@ -23,6 +25,7 @@ const SubscriptionPage = () => {
   useEffect(() => {
     if (user) {
       loadSubscriptions();
+      loadServices();
     }
   }, [user]);
 
@@ -36,6 +39,15 @@ const SubscriptionPage = () => {
       console.error('Load subscriptions error:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadServices = async () => {
+    try {
+      const response = await serviceService.getAllServices();
+      setServices(response.data || []);
+    } catch (error) {
+      console.error('Load services error:', error);
     }
   };
 
@@ -191,17 +203,22 @@ const SubscriptionPage = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    서비스 ID
+                    서비스 선택
                   </label>
-                  <input
-                    type="number"
+                  <select
                     name="serviceId"
                     value={formData.serviceId}
                     onChange={handleChange}
                     className="input-field"
-                    placeholder="서비스 ID를 입력하세요"
                     required
-                  />
+                  >
+                    <option value="">서비스를 선택하세요</option>
+                    {services.map(service => (
+                      <option key={service.id} value={service.id}>
+                        {service.name}
+                      </option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
