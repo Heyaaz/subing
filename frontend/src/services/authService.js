@@ -17,10 +17,9 @@ export const authService = {
       const response = await api.post('/users/login', credentials);
       const { data } = response.data;
       
-      // 토큰과 사용자 정보를 로컬스토리지에 저장
-      if (data.token) {
-        localStorage.setItem('token', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+      // 사용자 정보만 로컬스토리지에 저장 (토큰 체크 제거)
+      if (data) {
+        localStorage.setItem('user', JSON.stringify(data));
       }
       
       return response.data;
@@ -31,8 +30,8 @@ export const authService = {
 
   // 로그아웃
   logout() {
-    localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // token 제거는 불필요
   },
 
   // 현재 사용자 정보 가져오기
@@ -41,13 +40,13 @@ export const authService = {
     return user ? JSON.parse(user) : null;
   },
 
-  // 토큰 가져오기
+  // 토큰 가져오기 (현재는 사용 안함)
   getToken() {
-    return localStorage.getItem('token');
+    return null;
   },
 
-  // 로그인 상태 확인
+  // 로그인 상태 확인 - 토큰 대신 사용자 정보로 체크
   isAuthenticated() {
-    return !!this.getToken();
+    return !!this.getCurrentUser();
   }
 };

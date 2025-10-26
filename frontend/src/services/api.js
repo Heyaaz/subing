@@ -9,13 +9,10 @@ const api = axios.create({
   },
 });
 
-// 요청 인터셉터 - 토큰 자동 추가
+// 요청 인터셉터 - 토큰 로직 제거
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+    // 토큰 로직 제거 - 현재는 토큰 없이 사용
     return config;
   },
   (error) => {
@@ -30,8 +27,7 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // 토큰 만료 시 로그아웃 처리
-      localStorage.removeItem('token');
+      // 토큰 제거 대신 사용자 정보만 제거
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
