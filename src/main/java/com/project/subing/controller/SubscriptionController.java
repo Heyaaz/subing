@@ -42,4 +42,10 @@ public class SubscriptionController {
         SubscriptionResponse response = subscriptionService.updateSubscription(id, request);
         return ResponseEntity.ok(ApiResponse.success(response, "구독이 수정되었습니다."));
     }
+    
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ApiResponse<Void>> deleteSubscription(@PathVariable Long id) {
+        subscriptionService.deleteSubscription(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "구독이 삭제되었습니다."));
+    }
 }

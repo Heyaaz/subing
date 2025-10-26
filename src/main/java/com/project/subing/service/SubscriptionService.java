@@ -80,6 +80,13 @@ public class SubscriptionService {
         return convertToResponse(savedSubscription);
     }
     
+    public void deleteSubscription(Long id) {
+        UserSubscription subscription = userSubscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("구독을 찾을 수 없습니다."));
+        
+        userSubscriptionRepository.delete(subscription);
+    }
+    
     private SubscriptionResponse convertToResponse(UserSubscription subscription) {
         return SubscriptionResponse.builder()
                 .id(subscription.getId())

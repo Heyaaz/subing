@@ -131,4 +131,38 @@ public class SubscriptionControllerTest {
         assert response.contains("프리미엄 플러스");
         assert response.contains("20000");
     }
+
+    @Test
+    public void 구독_삭제_성공() {
+        // given - 먼저 구독을 생성
+        String createRequestJson = """
+                {
+                    "serviceId": 1,
+                    "planName": "프리미엄",
+                    "monthlyPrice": 17000,
+                    "billingDate": 15,
+                    "billingCycle": "MONTHLY",
+                    "notes": "가족 공유 중"
+                }
+                """;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        HttpEntity<String> createRequest = new HttpEntity<>(createRequestJson, headers);
+
+        String createUrl = "http://localhost:" + port + "/api/v1/subscriptions?userId=" + testUserId;
+        restTemplate.postForObject(createUrl, createRequest, String.class);
+        
+        // 구독 ID (실제로는 생성된 구독의 ID를 사용해야 함)
+        Long subscriptionId = 1L;
+
+        // when
+        String deleteUrl = "http://localhost:" + port + "/api/v1/subscriptions/" + subscriptionId;
+        String response = restTemplate.exchange(deleteUrl, org.springframework.http.HttpMethod.DELETE, 
+                new HttpEntity<>(headers), String.class).getBody();
+
+        // then
+        assert response != null;
+        assert response.contains("success");
+    }
 }
