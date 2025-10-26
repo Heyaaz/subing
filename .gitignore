@@ -38,3 +38,11 @@ out/
 
 ### env ###
 .env
+
+### Mac ###
+.DS_Store
+.venv
+*.log
+
+### 특정 md 파일 제외 ###
+개발 기술 문서.md
