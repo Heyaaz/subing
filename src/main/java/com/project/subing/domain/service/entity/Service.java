@@ -7,8 +7,6 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "services")
@@ -49,8 +47,6 @@ public class Service {
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-    
-    // 양방향 연관관계는 나중에 추가 (순환 참조 방지)
     
     // 비즈니스 로직
     public void deactivate() {
