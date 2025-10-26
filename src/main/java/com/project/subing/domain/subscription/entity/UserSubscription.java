@@ -1,7 +1,7 @@
 package com.project.subing.domain.subscription.entity;
 
 import com.project.subing.domain.common.BillingCycle;
-import com.project.subing.domain.service.entity.Service;
+import com.project.subing.domain.service.entity.ServiceEntity;
 import com.project.subing.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -29,7 +29,7 @@ public class UserSubscription {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private ServiceEntity service;
     
     @Column(length = 100)
     private String planName;

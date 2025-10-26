@@ -21,7 +21,7 @@ public class SubscriptionPlan {
     
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "service_id", nullable = false)
-    private Service service;
+    private ServiceEntity service;
     
     @Column(nullable = false, length = 100)
     private String planName;

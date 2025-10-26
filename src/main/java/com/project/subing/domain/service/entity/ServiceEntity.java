@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Service {
+public class ServiceEntity {
     
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
