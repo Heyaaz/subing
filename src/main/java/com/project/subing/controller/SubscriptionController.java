@@ -34,4 +34,12 @@ public class SubscriptionController {
         List<SubscriptionResponse> response = subscriptionService.getUserSubscriptions(userId);
         return ResponseEntity.ok(ApiResponse.success(response, "구독 목록을 조회했습니다."));
     }
+    
+    @PutMapping("/{id}")
+    public ResponseEntity<ApiResponse<SubscriptionResponse>> updateSubscription(
+            @PathVariable Long id,
+            @Valid @RequestBody SubscriptionRequest request) {
+        SubscriptionResponse response = subscriptionService.updateSubscription(id, request);
+        return ResponseEntity.ok(ApiResponse.success(response, "구독이 수정되었습니다."));
+    }
 }

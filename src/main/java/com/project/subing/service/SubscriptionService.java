@@ -26,10 +26,10 @@ public class SubscriptionService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
         
-        // 구독 생성 (간단한 버전 - Service 엔티티는 나중에 추가)
+        // 구독 생성 (Service 엔티티는 임시로 null 처리)
         UserSubscription subscription = UserSubscription.builder()
                 .user(user)
-                .service(null) // 나중에 Service 엔티티 연결
+                .service(null) // 임시로 null - 나중에 Service 엔티티 연결
                 .planName(request.getPlanName())
                 .monthlyPrice(request.getMonthlyPrice())
                 .billingDate(request.getBillingDate())
@@ -62,6 +62,22 @@ public class SubscriptionService {
         return subscriptions.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
+    }
+    
+    public SubscriptionResponse updateSubscription(Long id, SubscriptionRequest request) {
+        UserSubscription subscription = userSubscriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("구독을 찾을 수 없습니다."));
+        
+        // 필드 업데이트
+        subscription.updatePrice(request.getMonthlyPrice());
+        subscription.setPlanName(request.getPlanName());
+        subscription.setBillingDate(request.getBillingDate());
+        subscription.setBillingCycle(request.getBillingCycle());
+        subscription.setNotes(request.getNotes());
+        
+        UserSubscription savedSubscription = userSubscriptionRepository.save(subscription);
+        
+        return convertToResponse(savedSubscription);
     }
     
     private SubscriptionResponse convertToResponse(UserSubscription subscription) {

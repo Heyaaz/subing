@@ -28,7 +28,7 @@ public class UserSubscription {
     private User user;
     
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_id", nullable = false)
+    @JoinColumn(name = "service_id", nullable = true) // 임시로 nullable=true로 변경
     private ServiceEntity service;
     
     @Column(length = 100)
@@ -84,6 +84,22 @@ public class UserSubscription {
     
     public void updatePrice(Integer newPrice) {
         this.monthlyPrice = newPrice;
+    }
+    
+    public void setPlanName(String planName) {
+        this.planName = planName;
+    }
+    
+    public void setBillingDate(Integer billingDate) {
+        this.billingDate = billingDate;
+    }
+    
+    public void setBillingCycle(BillingCycle billingCycle) {
+        this.billingCycle = billingCycle;
+    }
+    
+    public void setNotes(String notes) {
+        this.notes = notes;
     }
     
     public void cancel() {
