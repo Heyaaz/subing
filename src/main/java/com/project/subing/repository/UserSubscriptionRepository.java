@@ -14,5 +14,7 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     
     List<UserSubscription> findByUserIdAndIsActive(Long userId, Boolean isActive);
     
+    List<UserSubscription> findByUserIdAndIsActiveTrue(Long userId);
+    
     Optional<UserSubscription> findByIdAndUserId(Long id, Long userId);
 }
