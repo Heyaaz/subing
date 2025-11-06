@@ -44,9 +44,6 @@ out/
 .venv
 *.log
 
-### 특정 md 파일 제외 ###
-개발 기술 문서.md
-
 ### Node.js ###
 node_modules/
 npm-debug.log*
@@ -63,3 +60,6 @@ frontend/dist/
 ### 캐시 파일 ###
 *.pack
 .cache/
+
+### Claude Code ###
+.claude/
