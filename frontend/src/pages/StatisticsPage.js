@@ -3,10 +3,13 @@ import { useAuth } from '../context/AuthContext';
 import { statisticsService } from '../services/statisticsService';
 import ErrorMessage from '../components/ErrorMessage';
 import Loading from '../components/Loading';
+import MonthlyExpenseChart from '../components/charts/MonthlyExpenseChart';
+import CategoryExpenseChart from '../components/charts/CategoryExpenseChart';
 
 const StatisticsPage = () => {
   const [monthlyExpense, setMonthlyExpense] = useState(null);
   const [expenseAnalysis, setExpenseAnalysis] = useState(null);
+  const [yearlyTrend, setYearlyTrend] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { user } = useAuth();
@@ -23,13 +26,18 @@ const StatisticsPage = () => {
   const loadStatistics = async () => {
     try {
       setLoading(true);
-      const [monthlyResponse, analysisResponse] = await Promise.all([
+      const [monthlyResponse, analysisResponse, trendData] = await Promise.all([
         statisticsService.getMonthlyExpense(user.id, selectedYear, selectedMonth),
-        statisticsService.getExpenseAnalysis(user.id)
+        statisticsService.getExpenseAnalysis(user.id),
+        statisticsService.getYearlyTrend(user.id, selectedYear)
       ]);
-      
+
       setMonthlyExpense(monthlyResponse.data);
       setExpenseAnalysis(analysisResponse.data);
+      setYearlyTrend(trendData.map(item => ({
+        month: item.month,
+        amount: item.totalAmount
+      })));
     } catch (error) {
       setError('통계 데이터를 불러오는데 실패했습니다.');
       console.error('Load statistics error:', error);
@@ -118,10 +126,25 @@ const StatisticsPage = () => {
           </div>
         )}
 
-        {/* 카테고리별 지출 */}
+        {/* 차트 섹션 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          {/* 월별 지출 트렌드 차트 */}
+          <div className="card">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">월별 지출 트렌드 ({selectedYear}년)</h2>
+            <MonthlyExpenseChart data={yearlyTrend} />
+          </div>
+
+          {/* 카테고리별 지출 차트 */}
+          <div className="card">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">카테고리별 지출 분포</h2>
+            <CategoryExpenseChart data={monthlyExpense?.categoryExpenses || []} />
+          </div>
+        </div>
+
+        {/* 카테고리별 지출 상세 */}
         {monthlyExpense?.categoryExpenses && monthlyExpense.categoryExpenses.length > 0 && (
           <div className="card mb-8">
-            <h2 className="text-xl font-bold text-gray-900 mb-6">카테고리별 지출</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-6">카테고리별 지출 상세</h2>
             <div className="space-y-4">
               {monthlyExpense.categoryExpenses.map((category, index) => (
                 <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
@@ -131,7 +154,7 @@ const StatisticsPage = () => {
                       <span className="text-sm text-gray-600">{formatPercentage(category.percentage)}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
+                      <div
                         className="bg-primary-600 h-2 rounded-full transition-all duration-300"
                         style={{ width: `${category.percentage}%` }}
                       ></div>
