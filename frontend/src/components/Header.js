@@ -14,6 +14,7 @@ const Header = () => {
   const navigationItems = [
     { path: '/dashboard', label: '대시보드' },
     { path: '/subscriptions', label: '구독 관리' },
+    { path: '/comparison', label: '서비스 비교' },
     { path: '/statistics', label: '통계' }
   ];
 

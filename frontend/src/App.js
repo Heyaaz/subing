@@ -6,6 +6,7 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import StatisticsPage from './pages/StatisticsPage';
+import ComparisonPage from './pages/ComparisonPage';
 import Loading from './components/Loading';
 
 // Private Route 컴포넌트
@@ -94,8 +95,8 @@ function App() {
                 </PrivateRoute>
               } 
             />
-            <Route 
-              path="/statistics" 
+            <Route
+              path="/statistics"
               element={
                 <PrivateRoute>
                   <div className="min-h-screen bg-gray-50">
@@ -103,9 +104,20 @@ function App() {
                     <StatisticsPage />
                   </div>
                 </PrivateRoute>
-              } 
+              }
             />
-            
+            <Route
+              path="/comparison"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <ComparisonPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+
             {/* Default redirect */}
             <Route path="/" element={<Navigate to="/dashboard" />} />
           </Routes>
