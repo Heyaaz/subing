@@ -31,8 +31,20 @@ public class SubscriptionController {
     
     @GetMapping
     public ResponseEntity<ApiResponse<List<SubscriptionResponse>>> getUserSubscriptions(
-            @RequestParam Long userId) {
-        List<SubscriptionResponse> response = subscriptionService.getUserSubscriptions(userId);
+            @RequestParam Long userId,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) String sort) {
+
+        List<SubscriptionResponse> response;
+
+        // 필터/정렬 파라미터가 있으면 필터링된 결과 반환
+        if (category != null || isActive != null || sort != null) {
+            response = subscriptionService.getUserSubscriptionsWithFilters(userId, category, isActive, sort);
+        } else {
+            response = subscriptionService.getUserSubscriptions(userId);
+        }
+
         return ResponseEntity.ok(ApiResponse.success(response, "구독 목록을 조회했습니다."));
     }
     

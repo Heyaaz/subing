@@ -65,7 +65,70 @@ public class SubscriptionService {
     @Transactional(readOnly = true)
     public List<SubscriptionResponse> getUserSubscriptions(Long userId) {
         List<UserSubscription> subscriptions = userSubscriptionRepository.findByUserId(userId);
-        
+
+        return subscriptions.stream()
+                .map(this::convertToResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public List<SubscriptionResponse> getUserSubscriptionsWithFilters(
+            Long userId,
+            String category,
+            Boolean isActive,
+            String sort) {
+
+        List<UserSubscription> subscriptions;
+
+        // 필터링 로직
+        if (category != null && !category.isEmpty() && isActive != null) {
+            // 카테고리 + 활성 상태 필터
+            subscriptions = userSubscriptionRepository.findByUserIdAndServiceCategoryAndIsActive(
+                    userId,
+                    com.project.subing.domain.common.ServiceCategory.valueOf(category.toUpperCase()),
+                    isActive
+            );
+        } else if (category != null && !category.isEmpty()) {
+            // 카테고리만 필터
+            subscriptions = userSubscriptionRepository.findByUserIdAndServiceCategory(
+                    userId,
+                    com.project.subing.domain.common.ServiceCategory.valueOf(category.toUpperCase())
+            );
+        } else if (isActive != null) {
+            // 활성 상태만 필터
+            subscriptions = userSubscriptionRepository.findByUserIdAndIsActive(userId, isActive);
+        } else {
+            // 필터 없음
+            subscriptions = userSubscriptionRepository.findByUserId(userId);
+        }
+
+        // 정렬 로직
+        if (sort != null && !sort.isEmpty()) {
+            switch (sort.toLowerCase()) {
+                case "price_asc":
+                    subscriptions.sort((s1, s2) -> s1.getMonthlyPrice().compareTo(s2.getMonthlyPrice()));
+                    break;
+                case "price_desc":
+                    subscriptions.sort((s1, s2) -> s2.getMonthlyPrice().compareTo(s1.getMonthlyPrice()));
+                    break;
+                case "date_asc":
+                    subscriptions.sort((s1, s2) -> s1.getCreatedAt().compareTo(s2.getCreatedAt()));
+                    break;
+                case "date_desc":
+                    subscriptions.sort((s1, s2) -> s2.getCreatedAt().compareTo(s1.getCreatedAt()));
+                    break;
+                case "name_asc":
+                    subscriptions.sort((s1, s2) -> s1.getService().getServiceName().compareTo(s2.getService().getServiceName()));
+                    break;
+                case "name_desc":
+                    subscriptions.sort((s1, s2) -> s2.getService().getServiceName().compareTo(s1.getService().getServiceName()));
+                    break;
+                default:
+                    // 기본 정렬: 생성일 내림차순
+                    subscriptions.sort((s1, s2) -> s2.getCreatedAt().compareTo(s1.getCreatedAt()));
+            }
+        }
+
         return subscriptions.stream()
                 .map(this::convertToResponse)
                 .collect(Collectors.toList());
