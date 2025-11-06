@@ -13,6 +13,13 @@ const SubscriptionPage = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const { user } = useAuth();
 
+  // 필터/정렬 상태
+  const [filters, setFilters] = useState({
+    category: '',
+    isActive: '',
+    sort: ''
+  });
+
   const [formData, setFormData] = useState({
     serviceId: '',
     planName: '',
@@ -27,12 +34,19 @@ const SubscriptionPage = () => {
       loadSubscriptions();
       loadServices();
     }
-  }, [user]);
+  }, [user, filters]);
 
   const loadSubscriptions = async () => {
     try {
       setLoading(true);
-      const response = await subscriptionService.getSubscriptions(user.id);
+
+      // 필터 객체 생성 (빈 값 제외)
+      const filterParams = {};
+      if (filters.category) filterParams.category = filters.category;
+      if (filters.isActive !== '') filterParams.isActive = filters.isActive === 'true';
+      if (filters.sort) filterParams.sort = filters.sort;
+
+      const response = await subscriptionService.getSubscriptions(user.id, filterParams);
       setSubscriptions(response.data || []);
     } catch (error) {
       setError('구독 목록을 불러오는데 실패했습니다.');
@@ -106,6 +120,22 @@ const SubscriptionPage = () => {
     }
   };
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleResetFilters = () => {
+    setFilters({
+      category: '',
+      isActive: '',
+      sort: ''
+    });
+  };
+
   if (loading) {
     return <Loading text="구독 목록을 불러오는 중..." />;
   }
@@ -120,6 +150,81 @@ const SubscriptionPage = () => {
           >
             구독 추가
           </button>
+        </div>
+
+        {/* 필터/정렬 UI */}
+        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            {/* 카테고리 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                카테고리
+              </label>
+              <select
+                name="category"
+                value={filters.category}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">전체</option>
+                <option value="OTT">OTT</option>
+                <option value="AI">AI</option>
+                <option value="MUSIC">음악</option>
+                <option value="CLOUD">클라우드</option>
+                <option value="DESIGN">디자인</option>
+                <option value="DELIVERY">배달</option>
+                <option value="ETC">기타</option>
+              </select>
+            </div>
+
+            {/* 활성 상태 필터 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                상태
+              </label>
+              <select
+                name="isActive"
+                value={filters.isActive}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">전체</option>
+                <option value="true">활성</option>
+                <option value="false">비활성</option>
+              </select>
+            </div>
+
+            {/* 정렬 */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                정렬
+              </label>
+              <select
+                name="sort"
+                value={filters.sort}
+                onChange={handleFilterChange}
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="">기본 (최신순)</option>
+                <option value="price_asc">가격 낮은순</option>
+                <option value="price_desc">가격 높은순</option>
+                <option value="date_asc">등록일 오래된순</option>
+                <option value="date_desc">등록일 최신순</option>
+                <option value="name_asc">이름 오름차순</option>
+                <option value="name_desc">이름 내림차순</option>
+              </select>
+            </div>
+
+            {/* 필터 초기화 버튼 */}
+            <div className="flex items-end">
+              <button
+                onClick={handleResetFilters}
+                className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+              >
+                필터 초기화
+              </button>
+            </div>
+          </div>
         </div>
 
         {error && (

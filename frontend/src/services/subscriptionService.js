@@ -1,10 +1,23 @@
 import api from './api';
 
 export const subscriptionService = {
-  // 구독 목록 조회
-  async getSubscriptions(userId) {
+  // 구독 목록 조회 (필터/정렬 지원)
+  async getSubscriptions(userId, filters = {}) {
     try {
-      const response = await api.get(`/subscriptions?userId=${userId}`);
+      const params = new URLSearchParams({ userId: userId.toString() });
+
+      // 필터 파라미터 추가
+      if (filters.category) {
+        params.append('category', filters.category);
+      }
+      if (filters.isActive !== undefined && filters.isActive !== null) {
+        params.append('isActive', filters.isActive);
+      }
+      if (filters.sort) {
+        params.append('sort', filters.sort);
+      }
+
+      const response = await api.get(`/subscriptions?${params.toString()}`);
       return response.data;
     } catch (error) {
       throw error.response?.data || error;
