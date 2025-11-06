@@ -11,6 +11,8 @@ const SubscriptionPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editingSubscription, setEditingSubscription] = useState(null);
   const { user } = useAuth();
 
   // 필터/정렬 상태
@@ -133,6 +135,57 @@ const SubscriptionPage = () => {
       category: '',
       isActive: '',
       sort: ''
+    });
+  };
+
+  const handleEdit = (subscription) => {
+    setEditingSubscription(subscription);
+    setFormData({
+      serviceId: subscription.serviceId || '',
+      planName: subscription.planName || '',
+      monthlyPrice: subscription.monthlyPrice || '',
+      billingCycle: subscription.billingCycle || 'MONTHLY',
+      billingDate: subscription.billingDate || '',
+      notes: subscription.notes || ''
+    });
+    setShowEditForm(true);
+  };
+
+  const handleUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      await subscriptionService.updateSubscription(editingSubscription.id, {
+        ...formData,
+        monthlyPrice: parseInt(formData.monthlyPrice),
+        billingDate: parseInt(formData.billingDate)
+      });
+      setShowEditForm(false);
+      setEditingSubscription(null);
+      setFormData({
+        serviceId: '',
+        planName: '',
+        monthlyPrice: '',
+        billingCycle: 'MONTHLY',
+        billingDate: '',
+        notes: ''
+      });
+      loadSubscriptions();
+    } catch (error) {
+      setError('구독 수정에 실패했습니다.');
+      console.error('Update subscription error:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setShowEditForm(false);
+    setEditingSubscription(null);
+    setFormData({
+      serviceId: '',
+      planName: '',
+      monthlyPrice: '',
+      billingCycle: 'MONTHLY',
+      billingDate: '',
+      notes: ''
     });
   };
 
@@ -267,10 +320,16 @@ const SubscriptionPage = () => {
 
               <div className="flex space-x-2">
                 <button
+                  onClick={() => handleEdit(subscription)}
+                  className="px-3 py-1 rounded text-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
+                >
+                  수정
+                </button>
+                <button
                   onClick={() => handleToggleStatus(subscription.id, subscription.isActive)}
                   className={`px-3 py-1 rounded text-sm ${
-                    subscription.isActive 
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200' 
+                    subscription.isActive
+                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
                       : 'bg-green-100 text-green-700 hover:bg-green-200'
                   }`}
                 >
@@ -412,6 +471,121 @@ const SubscriptionPage = () => {
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
+                    className="flex-1 btn-secondary"
+                  >
+                    취소
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* 구독 수정 모달 */}
+        {showEditForm && editingSubscription && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-md">
+              <h2 className="text-xl font-bold mb-4">구독 수정</h2>
+
+              <form onSubmit={handleUpdate} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    서비스명
+                  </label>
+                  <input
+                    type="text"
+                    value={editingSubscription.serviceName}
+                    className="input-field bg-gray-100"
+                    disabled
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    요금제명
+                  </label>
+                  <input
+                    type="text"
+                    name="planName"
+                    value={formData.planName}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="요금제명을 입력하세요"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    월 요금
+                  </label>
+                  <input
+                    type="number"
+                    name="monthlyPrice"
+                    value={formData.monthlyPrice}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="월 요금을 입력하세요"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    결제 주기
+                  </label>
+                  <select
+                    name="billingCycle"
+                    value={formData.billingCycle}
+                    onChange={handleChange}
+                    className="input-field"
+                  >
+                    <option value="MONTHLY">월간</option>
+                    <option value="YEARLY">연간</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    결제일
+                  </label>
+                  <input
+                    type="number"
+                    name="billingDate"
+                    value={formData.billingDate}
+                    onChange={handleChange}
+                    className="input-field"
+                    placeholder="매월 몇 일 (1-31)"
+                    min="1"
+                    max="31"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    메모
+                  </label>
+                  <textarea
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleChange}
+                    className="input-field"
+                    rows="3"
+                    placeholder="메모를 입력하세요 (선택사항)"
+                  />
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    type="submit"
+                    className="flex-1 btn-primary"
+                  >
+                    수정
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
                     className="flex-1 btn-secondary"
                   >
                     취소
