@@ -11,6 +11,7 @@ import QuizPage from './pages/QuizPage';
 import RecommendationResultPage from './pages/RecommendationResultPage';
 import RecommendationHistoryPage from './pages/RecommendationHistoryPage';
 import NotificationPage from './pages/NotificationPage';
+import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
 import Loading from './components/Loading';
@@ -163,6 +164,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <NotificationPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/notification-settings"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <NotificationSettingsPage />
                   </div>
                 </PrivateRoute>
               }
