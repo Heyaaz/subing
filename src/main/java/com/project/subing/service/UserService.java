@@ -1,9 +1,11 @@
 package com.project.subing.service;
 
 import com.project.subing.domain.user.entity.User;
+import com.project.subing.domain.user.entity.UserTierUsage;
 import com.project.subing.dto.user.LoginRequest;
 import com.project.subing.dto.user.SignupRequest;
 import com.project.subing.dto.user.UserResponse;
+import com.project.subing.dto.user.UserTierInfoResponse;
 import com.project.subing.repository.UserRepository;
 import com.project.subing.security.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final TierLimitService tierLimitService;
     
     public UserResponse signup(SignupRequest request) {
         // 이메일 중복 검사
@@ -67,5 +70,17 @@ public class UserService {
                 .token(token)
                 .createdAt(user.getCreatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public UserTierInfoResponse getUserTierInfo(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        UserTierUsage usage = tierLimitService.getCurrentMonthUsage(userId);
+        int remainingGpt = tierLimitService.getRemainingGptRecommendations(userId);
+        int remainingOptimization = tierLimitService.getRemainingOptimizationChecks(userId);
+
+        return UserTierInfoResponse.from(user, usage, remainingGpt, remainingOptimization);
     }
 }

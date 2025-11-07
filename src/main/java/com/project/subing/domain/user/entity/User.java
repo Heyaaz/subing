@@ -29,11 +29,21 @@ public class User {
     
     @Column(nullable = false, length = 100)
     private String name;
-    
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private UserTier tier = UserTier.FREE;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private UserRole role = UserRole.USER;
+
     @CreationTimestamp
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
-    
+
     @UpdateTimestamp
     @Column(nullable = false)
     private LocalDateTime updatedAt;
@@ -44,8 +54,28 @@ public class User {
     public void updatePassword(String newPassword) {
         this.password = newPassword;
     }
-    
+
     public void updateName(String newName) {
         this.name = newName;
+    }
+
+    public void upgradeTier(UserTier newTier) {
+        this.tier = newTier;
+    }
+
+    public void updateRole(UserRole newRole) {
+        this.role = newRole;
+    }
+
+    public boolean isPro() {
+        return this.tier == UserTier.PRO;
+    }
+
+    public boolean isFree() {
+        return this.tier == UserTier.FREE;
+    }
+
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
     }
 }

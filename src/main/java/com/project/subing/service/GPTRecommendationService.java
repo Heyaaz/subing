@@ -47,6 +47,7 @@ public class GPTRecommendationService {
     private final UserRepository userRepository;
     private final RecommendationResultRepository recommendationResultRepository;
     private final RecommendationFeedbackRepository recommendationFeedbackRepository;
+    private final TierLimitService tierLimitService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
@@ -59,11 +60,19 @@ public class GPTRecommendationService {
     }
 
     public RecommendationResponse getRecommendations(Long userId, QuizRequest quiz) {
+        // 0. 티어 제한 체크
+        if (!tierLimitService.canUseGptRecommendation(userId)) {
+            throw new RuntimeException("GPT 추천 사용 횟수를 초과했습니다. PRO 티어로 업그레이드하세요.");
+        }
+
         // 1. 캐시된 추천 결과 조회 (없으면 GPT API 호출)
         RecommendationResponse result = getRecommendationFromCache(quiz);
 
         // 2. DB에 저장
         saveRecommendationResult(userId, quiz, result);
+
+        // 3. 사용량 증가
+        tierLimitService.incrementGptRecommendation(userId);
 
         return result;
     }

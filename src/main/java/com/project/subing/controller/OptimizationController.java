@@ -5,6 +5,7 @@ import com.project.subing.dto.optimization.CheaperAlternativeResponse;
 import com.project.subing.dto.optimization.DuplicateServiceGroupResponse;
 import com.project.subing.dto.optimization.OptimizationSuggestionResponse;
 import com.project.subing.service.SubscriptionOptimizationService;
+import com.project.subing.service.TierLimitService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +19,16 @@ import java.util.stream.Collectors;
 public class OptimizationController {
 
     private final SubscriptionOptimizationService optimizationService;
+    private final TierLimitService tierLimitService;
 
     @GetMapping("/suggestions")
     public ResponseEntity<ApiResponse<OptimizationSuggestionResponse>> getOptimizationSuggestions(
             @RequestParam Long userId) {
+
+        // 티어 제한 체크
+        if (!tierLimitService.canUseOptimizationCheck(userId)) {
+            throw new RuntimeException("최적화 체크 사용 횟수를 초과했습니다. PRO 티어로 업그레이드하세요.");
+        }
 
         // 중복 서비스 감지
         List<SubscriptionOptimizationService.DuplicateServiceGroup> duplicates =
@@ -51,6 +58,9 @@ public class OptimizationController {
                 .totalPotentialSavings(totalPotentialSavings)
                 .summary(summary)
                 .build();
+
+        // 사용량 증가
+        tierLimitService.incrementOptimizationCheck(userId);
 
         return ResponseEntity.ok(ApiResponse.success(response, "최적화 제안을 생성했습니다."));
     }
