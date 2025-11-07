@@ -142,4 +142,45 @@ public class NotificationScheduler {
 
         log.info("예산 초과 알림 체크 완료");
     }
+
+    // 매주 월요일 자정에 실행 (미사용 구독 감지 알림 체크)
+    @Scheduled(cron = "0 0 0 * * MON")
+    public void checkUnusedSubscriptionNotifications() {
+        log.info("미사용 구독 감지 알림 체크 시작");
+
+        LocalDate today = LocalDate.now();
+        LocalDate thresholdDate = today.minusDays(90);
+
+        // 90일 이상 지속된 활성 구독 조회
+        List<UserSubscription> longTermSubscriptions = userSubscriptionRepository.findAll()
+                .stream()
+                .filter(UserSubscription::getIsActive)
+                .filter(subscription -> subscription.getCreatedAt().toLocalDate().isBefore(thresholdDate))
+                .toList();
+
+        for (UserSubscription subscription : longTermSubscriptions) {
+            try {
+                long daysActive = ChronoUnit.DAYS.between(subscription.getCreatedAt().toLocalDate(), today);
+
+                String title = "장기 구독 확인 필요";
+                String message = String.format("%s 구독을 %d일째 사용 중입니다. 계속 사용하시나요? 불필요한 구독은 해지하여 비용을 절약하세요.",
+                        subscription.getService().getServiceName(),
+                        daysActive);
+
+                notificationService.createNotification(
+                        subscription.getUser().getId(),
+                        NotificationType.UNUSED_SUBSCRIPTION,
+                        title,
+                        message,
+                        subscription.getId()
+                );
+
+                log.info("미사용 구독 감지 알림 생성 - subscriptionId: {}, 활성 기간: {}일", subscription.getId(), daysActive);
+            } catch (Exception e) {
+                log.error("미사용 구독 감지 알림 생성 실패 - subscriptionId: {}", subscription.getId(), e);
+            }
+        }
+
+        log.info("미사용 구독 감지 알림 체크 완료");
+    }
 }
