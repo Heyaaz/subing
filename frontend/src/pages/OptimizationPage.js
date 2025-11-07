@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { optimizationService } from '../services/optimizationService';
 import { useAuth } from '../context/AuthContext';
+import TierLimitModal from '../components/TierLimitModal';
 
 const OptimizationPage = () => {
   const { user } = useAuth();
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showTierModal, setShowTierModal] = useState(false);
 
   useEffect(() => {
     if (user?.id) {
@@ -21,6 +23,11 @@ const OptimizationPage = () => {
       setSuggestions(response.data);
     } catch (error) {
       console.error('Failed to fetch optimization suggestions:', error);
+      // 티어 제한 에러인 경우 모달 표시
+      const errorMessage = error?.message || error?.error || '';
+      if (errorMessage.includes('최적화 체크 사용 횟수') || errorMessage.includes('업그레이드')) {
+        setShowTierModal(true);
+      }
     } finally {
       setLoading(false);
     }
@@ -210,6 +217,13 @@ const OptimizationPage = () => {
           </div>
         )}
       </div>
+
+      {/* 티어 제한 모달 */}
+      <TierLimitModal
+        isOpen={showTierModal}
+        onClose={() => setShowTierModal(false)}
+        limitType="optimization"
+      />
     </div>
   );
 };

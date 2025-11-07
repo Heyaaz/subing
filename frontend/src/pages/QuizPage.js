@@ -2,12 +2,14 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
+import TierLimitModal from '../components/TierLimitModal';
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [showTierModal, setShowTierModal] = useState(false);
 
   const [quizData, setQuizData] = useState({
     interests: [],
@@ -55,8 +57,14 @@ const QuizPage = () => {
         }
       });
     } catch (error) {
-      alert('추천을 생성하는데 실패했습니다. 다시 시도해주세요.');
       console.error('Get recommendations error:', error);
+      // 티어 제한 에러인 경우 모달 표시
+      const errorMessage = error?.message || error?.error || '';
+      if (errorMessage.includes('GPT 추천 사용 횟수') || errorMessage.includes('업그레이드')) {
+        setShowTierModal(true);
+      } else {
+        alert('추천을 생성하는데 실패했습니다. 다시 시도해주세요.');
+      }
     } finally {
       setLoading(false);
     }
@@ -246,6 +254,13 @@ const QuizPage = () => {
           )}
         </div>
       </div>
+
+      {/* 티어 제한 모달 */}
+      <TierLimitModal
+        isOpen={showTierModal}
+        onClose={() => setShowTierModal(false)}
+        limitType="gpt"
+      />
     </div>
   );
 };

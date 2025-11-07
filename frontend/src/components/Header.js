@@ -46,7 +46,8 @@ const Header = () => {
     { path: '/optimization', label: '최적화 제안' },
     { path: '/comparison', label: '서비스 비교' },
     { path: '/recommendation/quiz', label: 'AI 추천' },
-    { path: '/statistics', label: '통계' }
+    { path: '/statistics', label: '통계' },
+    { path: '/tier', label: '멤버십' }
   ];
 
   return (

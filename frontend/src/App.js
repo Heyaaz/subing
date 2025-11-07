@@ -14,6 +14,7 @@ import NotificationPage from './pages/NotificationPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
+import TierPage from './pages/TierPage';
 import Loading from './components/Loading';
 
 // Private Route 컴포넌트
@@ -197,6 +198,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <OptimizationPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/tier"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <TierPage />
                   </div>
                 </PrivateRoute>
               }
