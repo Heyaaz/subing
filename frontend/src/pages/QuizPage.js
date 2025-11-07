@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
+import { useAuth } from '../context/AuthContext';
 
 const QuizPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -37,13 +39,20 @@ const QuizPage = () => {
       return;
     }
 
+    if (!user?.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     try {
       setLoading(true);
-      const userId = 1; // TODO: JWT 구현 후 실제 사용자 ID로 변경
-      const response = await recommendationService.getAIRecommendations(userId, quizData);
+      const response = await recommendationService.getAIRecommendations(user.id, quizData);
 
       navigate('/recommendation/result', {
-        state: { recommendations: response.data }
+        state: {
+          recommendations: response.data,
+          recommendationId: response.data.id // 추천 ID 전달
+        }
       });
     } catch (error) {
       alert('추천을 생성하는데 실패했습니다. 다시 시도해주세요.');

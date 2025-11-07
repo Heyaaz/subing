@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { notificationService } from '../services/notificationService';
+import { useAuth } from '../context/AuthContext';
 
 const NotificationPage = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (user?.id) {
+      fetchNotifications();
+    }
+  }, [user?.id]);
 
   const fetchNotifications = async () => {
+    if (!user?.id) return;
     try {
       setLoading(true);
-      const response = await notificationService.getNotifications(userId);
+      const response = await notificationService.getNotifications(user.id);
       setNotifications(response.data);
     } catch (error) {
       console.error('Failed to fetch notifications:', error);
@@ -23,8 +27,9 @@ const NotificationPage = () => {
   };
 
   const handleMarkAsRead = async (notificationId) => {
+    if (!user?.id) return;
     try {
-      await notificationService.markAsRead(notificationId, userId);
+      await notificationService.markAsRead(notificationId, user.id);
       setNotifications(notifications.map(notif =>
         notif.id === notificationId ? { ...notif, isRead: true } : notif
       ));
@@ -34,8 +39,9 @@ const NotificationPage = () => {
   };
 
   const handleMarkAllAsRead = async () => {
+    if (!user?.id) return;
     try {
-      await notificationService.markAllAsRead(userId);
+      await notificationService.markAllAsRead(user.id);
       setNotifications(notifications.map(notif => ({ ...notif, isRead: true })));
     } catch (error) {
       console.error('Failed to mark all notifications as read:', error);

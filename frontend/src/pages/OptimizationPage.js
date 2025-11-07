@@ -1,19 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { optimizationService } from '../services/optimizationService';
+import { useAuth } from '../context/AuthContext';
 
 const OptimizationPage = () => {
+  const { user } = useAuth();
   const [suggestions, setSuggestions] = useState(null);
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetchSuggestions();
-  }, []);
+    if (user?.id) {
+      fetchSuggestions();
+    }
+  }, [user?.id]);
 
   const fetchSuggestions = async () => {
+    if (!user?.id) return;
     try {
       setLoading(true);
-      const response = await optimizationService.getOptimizationSuggestions(userId);
+      const response = await optimizationService.getOptimizationSuggestions(user.id);
       setSuggestions(response.data);
     } catch (error) {
       console.error('Failed to fetch optimization suggestions:', error);

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { budgetService } from '../services/budgetService';
+import { useAuth } from '../context/AuthContext';
 
 const BudgetPage = () => {
+  const { user } = useAuth();
   const [budgets, setBudgets] = useState([]);
   const [currentBudget, setCurrentBudget] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -11,17 +13,19 @@ const BudgetPage = () => {
     month: new Date().getMonth() + 1,
     monthlyLimit: ''
   });
-  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetchBudgets();
-    fetchCurrentBudget();
-  }, []);
+    if (user?.id) {
+      fetchBudgets();
+      fetchCurrentBudget();
+    }
+  }, [user?.id]);
 
   const fetchBudgets = async () => {
+    if (!user?.id) return;
     try {
       setLoading(true);
-      const response = await budgetService.getAllBudgets(userId);
+      const response = await budgetService.getAllBudgets(user.id);
       setBudgets(response.data || []);
     } catch (error) {
       console.error('Failed to fetch budgets:', error);
@@ -31,8 +35,9 @@ const BudgetPage = () => {
   };
 
   const fetchCurrentBudget = async () => {
+    if (!user?.id) return;
     try {
-      const response = await budgetService.getCurrentMonthBudget(userId);
+      const response = await budgetService.getCurrentMonthBudget(user.id);
       setCurrentBudget(response.data);
     } catch (error) {
       console.error('Failed to fetch current budget:', error);
@@ -50,6 +55,11 @@ const BudgetPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!user?.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     if (!formData.monthlyLimit || formData.monthlyLimit <= 0) {
       alert('예산 금액을 입력해주세요.');
       return;
@@ -57,7 +67,7 @@ const BudgetPage = () => {
 
     try {
       await budgetService.setBudget(
-        userId,
+        user.id,
         parseInt(formData.year),
         parseInt(formData.month),
         parseInt(formData.monthlyLimit)
@@ -78,12 +88,17 @@ const BudgetPage = () => {
   };
 
   const handleDelete = async (budgetId) => {
+    if (!user?.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     if (!window.confirm('예산을 삭제하시겠습니까?')) {
       return;
     }
 
     try {
-      await budgetService.deleteBudget(budgetId, userId);
+      await budgetService.deleteBudget(budgetId, user.id);
       alert('예산이 삭제되었습니다.');
       fetchBudgets();
       fetchCurrentBudget();

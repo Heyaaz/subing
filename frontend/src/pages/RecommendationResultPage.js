@@ -1,28 +1,33 @@
 import React, { useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
+import { useAuth } from '../context/AuthContext';
 
 const RecommendationResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const recommendations = location.state?.recommendations;
   const recommendationId = location.state?.recommendationId;
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
-  const userId = localStorage.getItem('userId');
 
   if (!recommendations) {
-    navigate('/recommendation/quiz');
-    return null;
+    return <Navigate to="/recommendation/quiz" replace />;
   }
 
   const handleFeedback = async (isHelpful) => {
+    if (!user?.id) {
+      alert('로그인이 필요합니다.');
+      return;
+    }
+
     if (!recommendationId) {
       alert('피드백을 제출할 수 없습니다.');
       return;
     }
 
     try {
-      await recommendationService.submitFeedback(recommendationId, userId, isHelpful);
+      await recommendationService.submitFeedback(recommendationId, user.id, isHelpful);
       setFeedbackSubmitted(true);
     } catch (error) {
       console.error('Feedback error:', error);

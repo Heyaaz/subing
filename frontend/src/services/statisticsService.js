@@ -34,16 +34,22 @@ export const statisticsService = {
   // 연간 지출 트렌드
   async getYearlyTrend(userId, year) {
     try {
-      const monthlyData = [];
-      for (let month = 1; month <= 12; month++) {
-        const data = await this.getMonthlyExpense(userId, year, month);
-        monthlyData.push({
-          month,
-          totalAmount: data.data?.totalAmount || 0,
-          activeSubscriptions: data.data?.activeSubscriptions || 0
-        });
-      }
-      return monthlyData;
+      const months = Array.from({ length: 12 }, (_, i) => i + 1);
+      const monthlyResponses = await Promise.all(
+        months.map(async (month) => {
+          const data = await this.getMonthlyExpense(userId, year, month);
+          return {
+            month,
+            data,
+          };
+        })
+      );
+
+      return monthlyResponses.map(({ month, data }) => ({
+        month,
+        totalAmount: data.data?.totalAmount || 0,
+        activeSubscriptions: data.data?.activeSubscriptions || 0,
+      }));
     } catch (error) {
       throw error.response?.data || error;
     }

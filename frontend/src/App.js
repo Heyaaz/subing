@@ -9,6 +9,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import ComparisonPage from './pages/ComparisonPage';
 import QuizPage from './pages/QuizPage';
 import RecommendationResultPage from './pages/RecommendationResultPage';
+import RecommendationHistoryPage from './pages/RecommendationHistoryPage';
 import NotificationPage from './pages/NotificationPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
@@ -140,6 +141,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <RecommendationResultPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/recommendation/history"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <RecommendationHistoryPage />
                   </div>
                 </PrivateRoute>
               }

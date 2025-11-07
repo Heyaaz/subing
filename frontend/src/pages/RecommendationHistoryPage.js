@@ -1,21 +1,25 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
+import { useAuth } from '../context/AuthContext';
 
 const RecommendationHistoryPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [history, setHistory] = useState([]);
   const [loading, setLoading] = useState(true);
-  const userId = localStorage.getItem('userId');
 
   useEffect(() => {
-    fetchHistory();
-  }, []);
+    if (user?.id) {
+      fetchHistory();
+    }
+  }, [user?.id]);
 
   const fetchHistory = async () => {
+    if (!user?.id) return;
     try {
       setLoading(true);
-      const response = await recommendationService.getRecommendationHistory(userId);
+      const response = await recommendationService.getRecommendationHistory(user.id);
       setHistory(response.data);
     } catch (error) {
       console.error('Failed to fetch recommendation history:', error);
