@@ -2,11 +2,13 @@ package com.project.subing.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.subing.domain.recommendation.entity.RecommendationFeedback;
 import com.project.subing.domain.recommendation.entity.RecommendationResult;
 import com.project.subing.domain.service.entity.ServiceEntity;
 import com.project.subing.domain.user.entity.User;
 import com.project.subing.dto.recommendation.QuizRequest;
 import com.project.subing.dto.recommendation.RecommendationResponse;
+import com.project.subing.repository.RecommendationFeedbackRepository;
 import com.project.subing.repository.RecommendationResultRepository;
 import com.project.subing.repository.ServiceRepository;
 import com.project.subing.repository.UserRepository;
@@ -44,6 +46,7 @@ public class GPTRecommendationService {
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final RecommendationResultRepository recommendationResultRepository;
+    private final RecommendationFeedbackRepository recommendationFeedbackRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @PostConstruct
@@ -79,7 +82,31 @@ public class GPTRecommendationService {
 
     @Transactional(readOnly = true)
     public List<RecommendationResult> getRecommendationHistory(Long userId) {
-        return recommendationResultRepository.findTop5ByUserIdOrderByCreatedAtDesc(userId);
+        return recommendationResultRepository.findTop5ByUser_IdOrderByCreatedAtDesc(userId);
+    }
+
+    public void saveFeedback(Long recommendationId, Long userId, Boolean isHelpful, String comment) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        RecommendationResult recommendationResult = recommendationResultRepository.findById(recommendationId)
+                .orElseThrow(() -> new RuntimeException("추천 결과를 찾을 수 없습니다."));
+
+        // 이미 피드백을 남긴 경우 업데이트
+        RecommendationFeedback feedback = recommendationFeedbackRepository
+                .findByRecommendationResult_IdAndUser_Id(recommendationId, userId)
+                .orElse(null);
+
+        if (feedback == null) {
+            feedback = RecommendationFeedback.builder()
+                    .recommendationResult(recommendationResult)
+                    .user(user)
+                    .isHelpful(isHelpful)
+                    .comment(comment)
+                    .build();
+        }
+
+        recommendationFeedbackRepository.save(feedback);
     }
 
     private String buildPrompt(QuizRequest quiz) {

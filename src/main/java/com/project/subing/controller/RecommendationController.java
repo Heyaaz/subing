@@ -33,4 +33,14 @@ public class RecommendationController {
         List<RecommendationResult> history = gptRecommendationService.getRecommendationHistory(userId);
         return ResponseEntity.ok(ApiResponse.success(history, "추천 기록을 조회했습니다."));
     }
+
+    @PostMapping("/{recommendationId}/feedback")
+    public ResponseEntity<ApiResponse<Void>> submitFeedback(
+            @PathVariable Long recommendationId,
+            @RequestParam Long userId,
+            @RequestParam Boolean isHelpful,
+            @RequestParam(required = false) String comment) {
+        gptRecommendationService.saveFeedback(recommendationId, userId, isHelpful, comment);
+        return ResponseEntity.ok(ApiResponse.success(null, "피드백이 저장되었습니다."));
+    }
 }
