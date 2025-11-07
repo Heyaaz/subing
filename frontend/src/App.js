@@ -7,6 +7,8 @@ import SignupPage from './pages/SignupPage';
 import SubscriptionPage from './pages/SubscriptionPage';
 import StatisticsPage from './pages/StatisticsPage';
 import ComparisonPage from './pages/ComparisonPage';
+import QuizPage from './pages/QuizPage';
+import RecommendationResultPage from './pages/RecommendationResultPage';
 import Loading from './components/Loading';
 
 // Private Route 컴포넌트
@@ -113,6 +115,28 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <ComparisonPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/recommendation/quiz"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <QuizPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/recommendation/result"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <RecommendationResultPage />
                   </div>
                 </PrivateRoute>
               }
