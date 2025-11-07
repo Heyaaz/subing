@@ -1,15 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { notificationService } from '../services/notificationService';
 
 const Header = () => {
   const { user, logout, isAuthenticated } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   const handleLogout = () => {
     logout();
   };
+
+  // 읽지 않은 알림 개수 조회
+  const fetchUnreadCount = async () => {
+    if (!isAuthenticated || !user?.id) return;
+
+    try {
+      const response = await notificationService.getUnreadCount(user.id);
+      setUnreadCount(response.data || 0);
+    } catch (error) {
+      console.error('Failed to fetch unread count:', error);
+    }
+  };
+
+  // 30초마다 폴링
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUnreadCount(); // 초기 로드
+
+      const interval = setInterval(() => {
+        fetchUnreadCount();
+      }, 30000); // 30초
+
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, user?.id]);
 
   const navigationItems = [
     { path: '/dashboard', label: '대시보드' },
@@ -50,6 +78,21 @@ const Header = () => {
               </nav>
 
               <div className="hidden md:flex items-center space-x-4">
+                {/* 알림 아이콘 */}
+                <button
+                  onClick={() => navigate('/notifications')}
+                  className="relative p-2 text-gray-600 hover:text-gray-900 transition-colors duration-200"
+                >
+                  <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                  </svg>
+                  {unreadCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
+
                 <span className="text-gray-700">
                   안녕하세요, {user?.name}님
                 </span>
@@ -93,6 +136,20 @@ const Header = () => {
                 </Link>
               ))}
               <div className="border-t border-gray-200 pt-4 mt-4">
+                <button
+                  onClick={() => {
+                    navigate('/notifications');
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-between w-full px-3 py-2 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-md"
+                >
+                  <span>알림</span>
+                  {unreadCount > 0 && (
+                    <span className="inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {unreadCount > 9 ? '9+' : unreadCount}
+                    </span>
+                  )}
+                </button>
                 <div className="px-3 py-2 text-sm text-gray-700">
                   안녕하세요, {user?.name}님
                 </div>
