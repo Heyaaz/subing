@@ -9,10 +9,13 @@ const api = axios.create({
   },
 });
 
-// 요청 인터셉터 - 토큰 로직 제거
+// 요청 인터셉터 - JWT 토큰 추가
 api.interceptors.request.use(
   (config) => {
-    // 토큰 로직 제거 - 현재는 토큰 없이 사용
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
     return config;
   },
   (error) => {
@@ -27,7 +30,8 @@ api.interceptors.response.use(
   },
   (error) => {
     if (error.response?.status === 401) {
-      // 토큰 제거 대신 사용자 정보만 제거
+      // 토큰 및 사용자 정보 제거
+      localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
     }
