@@ -9,7 +9,7 @@ import java.util.List;
 @Repository
 public interface RecommendationResultRepository extends JpaRepository<RecommendationResult, Long> {
 
-    List<RecommendationResult> findByUserIdOrderByCreatedAtDesc(Long userId);
+    List<RecommendationResult> findByUser_IdOrderByCreatedAtDesc(Long userId);
 
-    List<RecommendationResult> findTop5ByUserIdOrderByCreatedAtDesc(Long userId);
+    List<RecommendationResult> findTop5ByUser_IdOrderByCreatedAtDesc(Long userId);
 }

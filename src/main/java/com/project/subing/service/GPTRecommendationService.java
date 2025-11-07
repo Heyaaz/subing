@@ -13,6 +13,7 @@ import com.project.subing.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -55,6 +56,17 @@ public class GPTRecommendationService {
     }
 
     public RecommendationResponse getRecommendations(Long userId, QuizRequest quiz) {
+        // 1. 캐시된 추천 결과 조회 (없으면 GPT API 호출)
+        RecommendationResponse result = getRecommendationFromCache(quiz);
+
+        // 2. DB에 저장
+        saveRecommendationResult(userId, quiz, result);
+
+        return result;
+    }
+
+    @Cacheable(value = "gptRecommendations", key = "#quiz")
+    public RecommendationResponse getRecommendationFromCache(QuizRequest quiz) {
         // 1. 프롬프트 생성
         String prompt = buildPrompt(quiz);
 
@@ -62,12 +74,7 @@ public class GPTRecommendationService {
         String response = callGPTAPI(prompt);
 
         // 3. JSON 파싱
-        RecommendationResponse result = parseResponse(response);
-
-        // 4. DB에 저장
-        saveRecommendationResult(userId, quiz, result);
-
-        return result;
+        return parseResponse(response);
     }
 
     @Transactional(readOnly = true)
