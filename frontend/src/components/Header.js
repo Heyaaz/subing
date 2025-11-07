@@ -43,6 +43,7 @@ const Header = () => {
     { path: '/dashboard', label: '대시보드' },
     { path: '/subscriptions', label: '구독 관리' },
     { path: '/budget', label: '예산 관리' },
+    { path: '/optimization', label: '최적화 제안' },
     { path: '/comparison', label: '서비스 비교' },
     { path: '/recommendation/quiz', label: 'AI 추천' },
     { path: '/statistics', label: '통계' }

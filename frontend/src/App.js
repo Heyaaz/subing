@@ -11,6 +11,7 @@ import QuizPage from './pages/QuizPage';
 import RecommendationResultPage from './pages/RecommendationResultPage';
 import NotificationPage from './pages/NotificationPage';
 import BudgetPage from './pages/BudgetPage';
+import OptimizationPage from './pages/OptimizationPage';
 import Loading from './components/Loading';
 
 // Private Route 컴포넌트
@@ -161,6 +162,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <BudgetPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/optimization"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <OptimizationPage />
                   </div>
                 </PrivateRoute>
               }
