@@ -19,5 +19,21 @@ export const recommendationService = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  // 피드백 제출
+  async submitFeedback(recommendationId, userId, isHelpful, comment = '') {
+    try {
+      const response = await api.post(
+        `/recommendations/${recommendationId}/feedback`,
+        null,
+        {
+          params: { userId, isHelpful, comment }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error;
+    }
   }
 };

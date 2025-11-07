@@ -1,15 +1,34 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { recommendationService } from '../services/recommendationService';
 
 const RecommendationResultPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const recommendations = location.state?.recommendations;
+  const recommendationId = location.state?.recommendationId;
+  const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
+  const userId = localStorage.getItem('userId');
 
   if (!recommendations) {
     navigate('/recommendation/quiz');
     return null;
   }
+
+  const handleFeedback = async (isHelpful) => {
+    if (!recommendationId) {
+      alert('피드백을 제출할 수 없습니다.');
+      return;
+    }
+
+    try {
+      await recommendationService.submitFeedback(recommendationId, userId, isHelpful);
+      setFeedbackSubmitted(true);
+    } catch (error) {
+      console.error('Feedback error:', error);
+      alert('피드백 제출에 실패했습니다.');
+    }
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -101,13 +120,48 @@ const RecommendationResultPage = () => {
           </div>
         )}
 
+        {/* 피드백 */}
+        {!feedbackSubmitted ? (
+          <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 text-center mb-8">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
+              이 추천이 도움이 되었나요?
+            </h3>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={() => handleFeedback(true)}
+                className="px-6 py-3 bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition font-semibold"
+              >
+                👍 도움이 되었어요
+              </button>
+              <button
+                onClick={() => handleFeedback(false)}
+                className="px-6 py-3 bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition font-semibold"
+              >
+                👎 별로예요
+              </button>
+            </div>
+          </div>
+        ) : (
+          <div className="bg-green-50 rounded-lg shadow-md p-6 border border-green-200 text-center mb-8">
+            <p className="text-green-800 font-semibold">
+              피드백 감사합니다! 더 나은 추천을 위해 활용하겠습니다.
+            </p>
+          </div>
+        )}
+
         {/* 다시 테스트하기 */}
-        <div className="text-center mt-8">
+        <div className="text-center">
           <button
             onClick={() => navigate('/recommendation/quiz')}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
+            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold mr-4"
           >
             다시 테스트하기
+          </button>
+          <button
+            onClick={() => navigate('/recommendation/history')}
+            className="px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold"
+          >
+            추천 기록 보기
           </button>
         </div>
       </div>
