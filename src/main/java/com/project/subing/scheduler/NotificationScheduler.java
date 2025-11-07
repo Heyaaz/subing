@@ -1,7 +1,9 @@
 package com.project.subing.scheduler;
 
+import com.project.subing.domain.budget.entity.Budget;
 import com.project.subing.domain.notification.entity.NotificationType;
 import com.project.subing.domain.subscription.entity.UserSubscription;
+import com.project.subing.repository.BudgetRepository;
 import com.project.subing.repository.UserSubscriptionRepository;
 import com.project.subing.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
@@ -19,6 +23,7 @@ import java.util.List;
 public class NotificationScheduler {
 
     private final UserSubscriptionRepository userSubscriptionRepository;
+    private final BudgetRepository budgetRepository;
     private final NotificationService notificationService;
 
     // 매일 자정에 실행 (결제일 알림 체크)
@@ -77,5 +82,64 @@ public class NotificationScheduler {
         }
 
         log.info("결제일 알림 체크 완료");
+    }
+
+    // 매일 자정에 실행 (예산 초과 알림 체크)
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkBudgetExceededNotifications() {
+        log.info("예산 초과 알림 체크 시작");
+
+        LocalDate today = LocalDate.now();
+        int currentYear = today.getYear();
+        int currentMonth = today.getMonthValue();
+
+        // 모든 현재 월 예산 조회
+        List<Budget> budgets = budgetRepository.findAll().stream()
+                .filter(budget -> budget.getYear().equals(currentYear) && budget.getMonth().equals(currentMonth))
+                .toList();
+
+        // 모든 활성 구독 조회
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository.findAll()
+                .stream()
+                .filter(UserSubscription::getIsActive)
+                .toList();
+
+        // 사용자별 총 지출 계산
+        Map<Long, Long> userExpenseMap = activeSubscriptions.stream()
+                .collect(Collectors.groupingBy(
+                        subscription -> subscription.getUser().getId(),
+                        Collectors.summingLong(subscription -> subscription.getMonthlyPrice().longValue())
+                ));
+
+        // 예산 초과 체크
+        for (Budget budget : budgets) {
+            try {
+                Long userId = budget.getUser().getId();
+                Long totalExpense = userExpenseMap.getOrDefault(userId, 0L);
+                Long budgetLimit = budget.getMonthlyLimit();
+
+                if (totalExpense > budgetLimit) {
+                    String title = "예산 초과 알림";
+                    String message = String.format("이번 달 구독 지출(%,d원)이 설정한 예산(%,d원)을 %,d원 초과했습니다.",
+                            totalExpense,
+                            budgetLimit,
+                            totalExpense - budgetLimit);
+
+                    notificationService.createNotification(
+                            userId,
+                            NotificationType.BUDGET_EXCEEDED,
+                            title,
+                            message,
+                            null
+                    );
+
+                    log.info("예산 초과 알림 생성 - userId: {}, 예산: {}, 지출: {}", userId, budgetLimit, totalExpense);
+                }
+            } catch (Exception e) {
+                log.error("예산 초과 알림 생성 실패 - budgetId: {}", budget.getId(), e);
+            }
+        }
+
+        log.info("예산 초과 알림 체크 완료");
     }
 }
