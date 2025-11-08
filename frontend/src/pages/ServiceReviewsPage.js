@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getReviewsByService, getServiceRating, deleteReview, checkUserReviewed } from '../services/reviewService';
-import { getServiceById } from '../services/serviceService';
+import { serviceService } from '../services/serviceService';
 import StarRating from '../components/StarRating';
 import ReviewModal from '../components/ReviewModal';
 
@@ -24,7 +24,7 @@ const ServiceReviewsPage = () => {
   const fetchData = async () => {
     try {
       const [serviceData, reviewsData, ratingData, hasReviewedData] = await Promise.all([
-        getServiceById(serviceId),
+        serviceService.getServiceById(serviceId),
         getReviewsByService(serviceId),
         getServiceRating(serviceId),
         checkUserReviewed(serviceId),
