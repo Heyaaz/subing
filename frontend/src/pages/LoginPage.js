@@ -75,11 +75,11 @@ const LoginPage = () => {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         {/* 로고 */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center">
           <img
             src="/Subing-logo.png"
             alt="Subing"
-            className="h-12"
+            className="h-48 w-auto object-contain"
           />
         </div>
 

@@ -53,14 +53,14 @@ const Header = () => {
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="container mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between items-center h-16 md:h-20">
           {/* 로고 */}
           <div className="flex items-center">
             <Link to="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
               <img
                 src="/Subing-logo.png"
                 alt="Subing"
-                className="h-24 w-auto object-contain"
+                className="h-20 md:h-24 w-auto object-contain"
               />
             </Link>
           </div>
