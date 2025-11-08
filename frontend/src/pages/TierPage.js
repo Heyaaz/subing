@@ -78,7 +78,7 @@ const TierPage = () => {
 
         {/* 현재 티어 카드 */}
         <div className={`rounded-lg shadow-lg p-8 mb-6 ${
-          isFree ? 'bg-gradient-to-r from-gray-100 to-gray-200' : 'bg-gradient-to-r from-purple-500 to-indigo-600 text-white'
+          isFree ? 'bg-gradient-to-r from-gray-100 to-gray-200' : 'bg-gradient-to-r from-primary-500 to-primary-700 text-white'
         }`}>
           <div className="flex justify-between items-start">
             <div>
@@ -174,7 +174,7 @@ const TierPage = () => {
 
         {/* PRO 티어 혜택 안내 (FREE 사용자에게만) */}
         {isFree && (
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg shadow-md p-6 border-2 border-purple-200">
+          <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg shadow-md p-6 border-2 border-primary-200">
             <h3 className="text-xl font-bold text-gray-900 mb-4">🌟 PRO 멤버십 혜택</h3>
             <div className="space-y-3">
               <div className="flex items-start">
@@ -201,9 +201,9 @@ const TierPage = () => {
             </div>
             <button
               onClick={handleUpgrade}
-              className="w-full mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white px-6 py-3 rounded-lg font-semibold transition"
+              className="w-full mt-6 bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white px-6 py-3 rounded-lg font-semibold transition"
             >
-              지금 PRO로 업그레이드 (월 9,900원)
+              지금 PRO로 업그레이드하기 (월 9,900원)
             </button>
           </div>
         )}

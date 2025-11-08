@@ -61,8 +61,8 @@ const TierLimitModal = ({ isOpen, onClose, limitType }) => {
         {/* 설명 */}
         <div className="text-center mb-6">
           <p className="text-gray-600 mb-4">{message.description}</p>
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-4 border border-purple-200">
-            <p className="text-purple-900 font-semibold">💎 {message.benefit}</p>
+          <div className="bg-gradient-to-r from-primary-50 to-blue-50 rounded-lg p-4 border border-primary-200">
+            <p className="text-primary-900 font-semibold">💎 {message.benefit}</p>
           </div>
         </div>
 
@@ -86,9 +86,9 @@ const TierLimitModal = ({ isOpen, onClose, limitType }) => {
         <div className="space-y-3">
           <button
             onClick={handleUpgrade}
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white py-3 px-4 rounded-lg font-semibold transition shadow-md"
+            className="w-full bg-gradient-to-r from-primary-600 to-primary-700 hover:from-primary-700 hover:to-primary-800 text-white py-3 px-4 rounded-lg font-semibold transition shadow-md"
           >
-            PRO로 업그레이드 (월 9,900원)
+            PRO로 업그레이드하기 (월 9,900원)
           </button>
           <button
             onClick={onClose}
