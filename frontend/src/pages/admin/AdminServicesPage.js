@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllServices, createService, updateService, deleteService } from '../../services/adminService';
-import { Button, Badge } from '../../components/common';
+import { Button, Badge, Select } from '../../components/common';
 import Loading from '../../components/Loading';
 
 const AdminServicesPage = () => {
@@ -209,25 +209,15 @@ const AdminServicesPage = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  카테고리 *
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                >
-                  {categories.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <Select
+                name="category"
+                value={formData.category}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
+                label="카테고리 *"
+                options={categories.map((cat) => ({ value: cat, label: cat }))}
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

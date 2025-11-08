@@ -67,18 +67,18 @@ const NotificationSettingsPage = () => {
     }
   };
 
-  const getNotificationColor = (type) => {
+  const getNotificationIconColor = (type) => {
     switch (type) {
       case 'PAYMENT_DUE_3DAYS':
-        return 'bg-info-50 border-info-200';
+        return 'bg-info-50 text-info-600';
       case 'PAYMENT_DUE_1DAY':
-        return 'bg-warning-50 border-warning-200';
+        return 'bg-warning-50 text-warning-600';
       case 'BUDGET_EXCEEDED':
-        return 'bg-error-50 border-error-200';
+        return 'bg-error-50 text-error-600';
       case 'UNUSED_SUBSCRIPTION':
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-100 text-gray-600';
       default:
-        return 'bg-gray-50 border-gray-200';
+        return 'bg-gray-100 text-gray-600';
     }
   };
 
@@ -94,25 +94,30 @@ const NotificationSettingsPage = () => {
           <p className="text-gray-600">받고 싶은 알림 타입을 선택해요</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="divide-y divide-gray-200">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          <div className="divide-y divide-gray-100">
             {settings.map((setting) => (
               <div
                 key={setting.id}
-                className={`p-6 transition hover:bg-gray-50 ${getNotificationColor(setting.notificationType)}`}
+                className="p-6 transition-all duration-200 hover:bg-gray-50"
               >
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-6">
                   <div className="flex items-center gap-4 flex-1">
-                    <div className="text-4xl">{getNotificationIcon(setting.notificationType)}</div>
+                    {/* 아이콘 영역 */}
+                    <div className={`flex items-center justify-center w-12 h-12 rounded-lg text-2xl ${getNotificationIconColor(setting.notificationType)}`}>
+                      {getNotificationIcon(setting.notificationType)}
+                    </div>
+
+                    {/* 텍스트 영역 */}
                     <div className="flex-1">
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {setting.description}
                       </h3>
-                      <p className="text-sm text-gray-600">
-                        {setting.notificationType === 'PAYMENT_DUE_3DAYS' && '결제일 3일 전에 알림을 받습니다.'}
-                        {setting.notificationType === 'PAYMENT_DUE_1DAY' && '결제일 1일 전에 알림을 받습니다.'}
-                        {setting.notificationType === 'BUDGET_EXCEEDED' && '월별 예산을 초과하면 알림을 받습니다.'}
-                        {setting.notificationType === 'UNUSED_SUBSCRIPTION' && '90일 이상 미사용 구독에 대해 알림을 받습니다.'}
+                      <p className="text-sm text-gray-500 leading-relaxed">
+                        {setting.notificationType === 'PAYMENT_DUE_3DAYS' && '결제일 3일 전에 알림을 받아요'}
+                        {setting.notificationType === 'PAYMENT_DUE_1DAY' && '결제일 1일 전에 알림을 받아요'}
+                        {setting.notificationType === 'BUDGET_EXCEEDED' && '월별 예산을 초과하면 알림을 받아요'}
+                        {setting.notificationType === 'UNUSED_SUBSCRIPTION' && '90일 이상 미사용 구독에 대해 알림을 받아요'}
                       </p>
                     </div>
                   </div>
@@ -120,12 +125,13 @@ const NotificationSettingsPage = () => {
                   {/* Toggle Switch */}
                   <button
                     onClick={() => handleToggle(setting.notificationType, setting.isEnabled)}
-                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
+                    className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
                       setting.isEnabled ? 'bg-primary-600' : 'bg-gray-300'
                     }`}
+                    aria-label={`${setting.description} ${setting.isEnabled ? '끄기' : '켜기'}`}
                   >
                     <span
-                      className={`inline-block h-6 w-6 transform rounded-full bg-white transition-transform ${
+                      className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all duration-200 ${
                         setting.isEnabled ? 'translate-x-7' : 'translate-x-1'
                       }`}
                     />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllUsers, updateUser, deleteUser } from '../../services/adminService';
-import { Button, Badge } from '../../components/common';
+import { Button, Badge, Select } from '../../components/common';
 import Loading from '../../components/Loading';
 
 const AdminUsersPage = () => {
@@ -185,37 +185,31 @@ const AdminUsersPage = () => {
                 />
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  티어
-                </label>
-                <select
-                  value={formData.tier}
-                  onChange={(e) =>
-                    setFormData({ ...formData, tier: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="FREE">FREE</option>
-                  <option value="PRO">PRO</option>
-                </select>
-              </div>
+              <Select
+                name="tier"
+                value={formData.tier}
+                onChange={(e) =>
+                  setFormData({ ...formData, tier: e.target.value })
+                }
+                label="티어"
+                options={[
+                  { value: 'FREE', label: 'FREE' },
+                  { value: 'PRO', label: 'PRO' },
+                ]}
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  역할
-                </label>
-                <select
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({ ...formData, role: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                >
-                  <option value="USER">USER</option>
-                  <option value="ADMIN">ADMIN</option>
-                </select>
-              </div>
+              <Select
+                name="role"
+                value={formData.role}
+                onChange={(e) =>
+                  setFormData({ ...formData, role: e.target.value })
+                }
+                label="역할"
+                options={[
+                  { value: 'USER', label: 'USER' },
+                  { value: 'ADMIN', label: 'ADMIN' },
+                ]}
+              />
             </div>
 
             <div className="flex gap-3 mt-6">

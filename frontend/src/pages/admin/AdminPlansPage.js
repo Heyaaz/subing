@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllPlans, getAllServices, createPlan, updatePlan, deletePlan } from '../../services/adminService';
-import { Button, Badge } from '../../components/common';
+import { Button, Badge, Select } from '../../components/common';
 import Loading from '../../components/Loading';
 
 const AdminPlansPage = () => {
@@ -218,25 +218,18 @@ const AdminPlansPage = () => {
 
             <form onSubmit={handleSubmit} className="space-y-4">
               {!editingPlan && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    서비스 *
-                  </label>
-                  <select
-                    value={formData.serviceId}
-                    onChange={(e) =>
-                      setFormData({ ...formData, serviceId: e.target.value })
-                    }
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
-                  >
-                    {services.map((service) => (
-                      <option key={service.id} value={service.id}>
-                        {service.name}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <Select
+                  name="serviceId"
+                  value={formData.serviceId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, serviceId: e.target.value })
+                  }
+                  label="서비스 *"
+                  options={services.map((service) => ({
+                    value: service.id,
+                    label: service.name,
+                  }))}
+                />
               )}
 
               <div>
@@ -297,18 +290,31 @@ const AdminPlansPage = () => {
                 />
               </div>
 
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  checked={formData.isPopular}
-                  onChange={(e) =>
-                    setFormData({ ...formData, isPopular: e.target.checked })
+              <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
+                    인기 플랜으로 표시
+                  </label>
+                  <p className="text-xs text-gray-500">
+                    인기 플랜 배지가 표시돼요
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setFormData({ ...formData, isPopular: !formData.isPopular })
                   }
-                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                />
-                <label className="ml-2 block text-sm text-gray-700">
-                  인기 플랜으로 표시
-                </label>
+                  className={`relative inline-flex h-8 w-14 items-center rounded-full transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 ${
+                    formData.isPopular ? 'bg-primary-600' : 'bg-gray-300'
+                  }`}
+                  aria-label={`인기 플랜 ${formData.isPopular ? '끄기' : '켜기'}`}
+                >
+                  <span
+                    className={`inline-block h-6 w-6 transform rounded-full bg-white shadow-sm transition-all duration-200 ${
+                      formData.isPopular ? 'translate-x-7' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
               </div>
 
               <div className="flex gap-3 mt-6">
