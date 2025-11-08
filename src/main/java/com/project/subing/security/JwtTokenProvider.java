@@ -22,13 +22,14 @@ public class JwtTokenProvider {
         this.validityInMilliseconds = validityInMilliseconds;
     }
 
-    public String createToken(Long userId, String email) {
+    public String createToken(Long userId, String email, String role) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + validityInMilliseconds);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(validity)
                 .signWith(secretKey, Jwts.SIG.HS256)
@@ -53,6 +54,16 @@ public class JwtTokenProvider {
                 .getPayload();
 
         return claims.get("email", String.class);
+    }
+
+    public String getRoleFromToken(String token) {
+        Claims claims = Jwts.parser()
+                .verifyWith(secretKey)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+
+        return claims.get("role", String.class);
     }
 
     public boolean validateToken(String token) {

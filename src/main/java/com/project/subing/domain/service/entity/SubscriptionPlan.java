@@ -51,4 +51,23 @@ public class SubscriptionPlan {
     public void updatePrice(Integer newPrice) {
         this.monthlyPrice = newPrice;
     }
+
+    public void updateInfo(String planName, Integer monthlyPrice, String description,
+                          String features, Boolean isPopular) {
+        if (planName != null) {
+            this.planName = planName;
+        }
+        if (monthlyPrice != null) {
+            this.monthlyPrice = monthlyPrice;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (features != null) {
+            this.features = features;
+        }
+        if (isPopular != null) {
+            this.isPopular = isPopular;
+        }
+    }
 }

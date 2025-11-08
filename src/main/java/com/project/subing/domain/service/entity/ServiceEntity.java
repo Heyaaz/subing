@@ -52,8 +52,30 @@ public class ServiceEntity {
     public void deactivate() {
         this.isActive = false;
     }
-    
+
     public void activate() {
         this.isActive = true;
+    }
+
+    public void updateInfo(String serviceName, ServiceCategory category, String iconUrl,
+                          String officialUrl, String description, Boolean isActive) {
+        if (serviceName != null) {
+            this.serviceName = serviceName;
+        }
+        if (category != null) {
+            this.category = category;
+        }
+        if (iconUrl != null) {
+            this.iconUrl = iconUrl;
+        }
+        if (officialUrl != null) {
+            this.officialUrl = officialUrl;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        if (isActive != null) {
+            this.isActive = isActive;
+        }
     }
 }
