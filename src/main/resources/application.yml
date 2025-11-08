@@ -29,7 +29,7 @@ spring:
 # JWT 설정
 jwt:
   secret: ${JWT_SECRET:your-256-bit-secret-key-here-please-change-in-production}
-  access-token-validity: 900000      # 15분
+  access-token-validity: 86400000    # 24시간 (개발 환경)
   refresh-token-validity: 604800000  # 7일
 
 # OpenAI API 설정
