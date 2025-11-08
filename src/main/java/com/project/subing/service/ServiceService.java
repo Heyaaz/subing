@@ -3,11 +3,8 @@ package com.project.subing.service;
 import com.project.subing.domain.common.ServiceCategory;
 import com.project.subing.domain.service.entity.ServiceEntity;
 import com.project.subing.domain.service.entity.SubscriptionPlan;
-import com.project.subing.dto.service.ServiceComparisonRequest;
-import com.project.subing.dto.service.ServiceComparisonResponse;
+import com.project.subing.dto.service.*;
 import com.project.subing.dto.service.ServiceComparisonResponse.ComparisonSummary;
-import com.project.subing.dto.service.ServiceResponse;
-import com.project.subing.dto.service.SubscriptionPlanResponse;
 import com.project.subing.repository.ServiceRepository;
 import com.project.subing.repository.SubscriptionPlanRepository;
 import lombok.RequiredArgsConstructor;
@@ -177,5 +174,51 @@ public class ServiceService {
                 .mostPopularService(mostPopularService)
                 .bestValueService(bestValueService)
                 .build();
+    }
+
+    // ========== 관리자 전용 메서드 ==========
+
+    @Transactional
+    public ServiceResponse createService(ServiceCreateRequest request) {
+        ServiceEntity service = ServiceEntity.builder()
+                .serviceName(request.getServiceName())
+                .category(request.getCategory())
+                .iconUrl(request.getIconUrl())
+                .officialUrl(request.getOfficialUrl())
+                .description(request.getDescription())
+                .build();
+
+        ServiceEntity savedService = serviceRepository.save(service);
+        log.info("새 서비스 생성됨: {}", savedService.getId());
+
+        return convertEntityToDto(savedService);
+    }
+
+    @Transactional
+    public ServiceResponse updateService(Long serviceId, ServiceUpdateRequest request) {
+        ServiceEntity service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("서비스를 찾을 수 없습니다: " + serviceId));
+
+        service.updateInfo(
+            request.getServiceName(),
+            request.getCategory(),
+            request.getIconUrl(),
+            request.getOfficialUrl(),
+            request.getDescription(),
+            request.getIsActive()
+        );
+
+        log.info("서비스 업데이트됨: {}", serviceId);
+
+        return convertEntityToDto(service);
+    }
+
+    @Transactional
+    public void deleteService(Long serviceId) {
+        ServiceEntity service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("서비스를 찾을 수 없습니다: " + serviceId));
+
+        serviceRepository.delete(service);
+        log.info("서비스 삭제됨: {}", serviceId);
     }
 }

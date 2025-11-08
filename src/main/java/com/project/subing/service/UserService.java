@@ -2,6 +2,8 @@ package com.project.subing.service;
 
 import com.project.subing.domain.user.entity.User;
 import com.project.subing.domain.user.entity.UserTierUsage;
+import com.project.subing.dto.admin.AdminUserResponse;
+import com.project.subing.dto.admin.UserUpdateRequest;
 import com.project.subing.dto.user.LoginRequest;
 import com.project.subing.dto.user.SignupRequest;
 import com.project.subing.dto.user.UserResponse;
@@ -12,6 +14,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,8 +43,12 @@ public class UserService {
 
         User savedUser = userRepository.save(user);
 
-        // JWT 토큰 생성
-        String token = jwtTokenProvider.createToken(savedUser.getId(), savedUser.getEmail());
+        // JWT 토큰 생성 (role 포함)
+        String token = jwtTokenProvider.createToken(
+            savedUser.getId(),
+            savedUser.getEmail(),
+            savedUser.getRole().name()
+        );
 
         return UserResponse.builder()
                 .id(savedUser.getId())
@@ -60,8 +69,12 @@ public class UserService {
             throw new RuntimeException("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
 
-        // JWT 토큰 생성
-        String token = jwtTokenProvider.createToken(user.getId(), user.getEmail());
+        // JWT 토큰 생성 (role 포함)
+        String token = jwtTokenProvider.createToken(
+            user.getId(),
+            user.getEmail(),
+            user.getRole().name()
+        );
 
         return UserResponse.builder()
                 .id(user.getId())
@@ -82,5 +95,42 @@ public class UserService {
         int remainingOptimization = tierLimitService.getRemainingOptimizationChecks(userId);
 
         return UserTierInfoResponse.from(user, usage, remainingGpt, remainingOptimization);
+    }
+
+    // ========== 관리자 전용 메서드 ==========
+
+    @Transactional(readOnly = true)
+    public List<AdminUserResponse> getAllUsersForAdmin() {
+        List<User> users = userRepository.findAll();
+        return users.stream()
+                .map(AdminUserResponse::from)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional(readOnly = true)
+    public AdminUserResponse getUserByIdForAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+        return AdminUserResponse.from(user);
+    }
+
+    public AdminUserResponse updateUserByAdmin(Long userId, UserUpdateRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+
+        if (request.getTier() != null) {
+            user.upgradeTier(request.getTier());
+        }
+        if (request.getRole() != null) {
+            user.updateRole(request.getRole());
+        }
+
+        return AdminUserResponse.from(user);
+    }
+
+    public void deleteUserByAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다: " + userId));
+        userRepository.delete(user);
     }
 }
