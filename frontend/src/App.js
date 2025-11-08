@@ -15,6 +15,7 @@ import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
 import TierPage from './pages/TierPage';
+import ServiceReviewsPage from './pages/ServiceReviewsPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
@@ -213,6 +214,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <TierPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/services/:serviceId/reviews"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <ServiceReviewsPage />
                   </div>
                 </PrivateRoute>
               }
