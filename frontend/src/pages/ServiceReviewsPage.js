@@ -4,6 +4,8 @@ import { getReviewsByService, getServiceRating, deleteReview, checkUserReviewed 
 import { serviceService } from '../services/serviceService';
 import StarRating from '../components/StarRating';
 import ReviewModal from '../components/ReviewModal';
+import { Button, Card, EmptyState } from '../components/common';
+import Loading from '../components/Loading';
 
 const ServiceReviewsPage = () => {
   const { serviceId } = useParams();
@@ -36,7 +38,7 @@ const ServiceReviewsPage = () => {
       setHasReviewed(hasReviewedData);
     } catch (error) {
       console.error('데이터 조회 실패:', error);
-      alert('데이터를 불러올 수 없습니다.');
+      alert('데이터를 불러오지 못했어요. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -53,17 +55,17 @@ const ServiceReviewsPage = () => {
   };
 
   const handleDeleteReview = async (reviewId) => {
-    if (!window.confirm('정말로 이 리뷰를 삭제하시겠습니까?')) {
+    if (!window.confirm('정말로 이 리뷰를 삭제할까요?')) {
       return;
     }
 
     try {
       await deleteReview(reviewId);
-      alert('리뷰가 삭제되었습니다.');
+      alert('리뷰가 삭제되었어요.');
       fetchData();
     } catch (error) {
       console.error('리뷰 삭제 실패:', error);
-      alert('리뷰 삭제에 실패했습니다.');
+      alert('리뷰를 삭제하지 못했어요. 다시 시도해주세요.');
     }
   };
 
@@ -72,11 +74,7 @@ const ServiceReviewsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">로딩 중...</div>
-      </div>
-    );
+    return <Loading text="리뷰를 불러오고 있어요..." />;
   }
 
   return (
@@ -86,7 +84,7 @@ const ServiceReviewsPage = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <button
             onClick={() => navigate(-1)}
-            className="text-blue-600 hover:text-blue-800 mb-4"
+            className="text-primary-600 hover:text-primary-800 mb-4 font-medium"
           >
             ← 뒤로가기
           </button>
@@ -96,12 +94,12 @@ const ServiceReviewsPage = () => {
               <p className="mt-2 text-sm text-gray-600">{service?.description}</p>
             </div>
             {!hasReviewed && (
-              <button
+              <Button
+                variant="primary"
                 onClick={handleWriteReview}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                리뷰 작성
-              </button>
+                리뷰 작성하기
+              </Button>
             )}
           </div>
         </div>
@@ -110,18 +108,18 @@ const ServiceReviewsPage = () => {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 평균 평점 */}
         {rating && rating.reviewCount > 0 && (
-          <div className="bg-white rounded-lg shadow p-6 mb-8">
+          <Card className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">평균 평점</h2>
             <StarRating
               rating={rating.averageRating}
               reviewCount={rating.reviewCount}
               size="lg"
             />
-          </div>
+          </Card>
         )}
 
         {/* 리뷰 목록 */}
-        <div className="bg-white rounded-lg shadow">
+        <Card>
           <div className="p-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">
               리뷰 ({reviews.length})
@@ -129,16 +127,16 @@ const ServiceReviewsPage = () => {
           </div>
 
           {reviews.length === 0 ? (
-            <div className="p-12 text-center text-gray-500">
-              아직 작성된 리뷰가 없습니다.
-              {!hasReviewed && (
-                <button
-                  onClick={handleWriteReview}
-                  className="block mx-auto mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                  첫 리뷰 작성하기
-                </button>
-              )}
+            <div className="p-12">
+              <EmptyState
+                title="아직 작성된 리뷰가 없어요"
+                description={!hasReviewed ? "첫 리뷰를 작성해보세요!" : ""}
+                icon="⭐"
+                action={!hasReviewed ? {
+                  label: '첫 리뷰 작성하기',
+                  onClick: handleWriteReview
+                } : undefined}
+              />
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -167,13 +165,13 @@ const ServiceReviewsPage = () => {
                       <div className="flex gap-2 ml-4">
                         <button
                           onClick={() => handleEditReview(review)}
-                          className="text-blue-600 hover:text-blue-800 text-sm"
+                          className="text-primary-600 hover:text-primary-800 text-sm font-medium"
                         >
                           수정
                         </button>
                         <button
                           onClick={() => handleDeleteReview(review.id)}
-                          className="text-red-600 hover:text-red-800 text-sm"
+                          className="text-error-600 hover:text-error-800 text-sm font-medium"
                         >
                           삭제
                         </button>
@@ -184,7 +182,7 @@ const ServiceReviewsPage = () => {
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
 
       {/* 리뷰 작성/수정 모달 */}
