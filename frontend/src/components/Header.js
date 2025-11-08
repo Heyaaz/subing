@@ -58,9 +58,9 @@ const Header = () => {
           <div className="flex items-center">
             <Link to="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
               <img
-                src="/Subing.svg"
+                src="/Subing-logo.png"
                 alt="Subing"
-                className="h-8"
+                className="h-24 w-auto object-contain"
               />
             </Link>
           </div>
