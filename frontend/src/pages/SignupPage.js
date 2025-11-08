@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import ErrorMessage from '../components/ErrorMessage';
-import Loading from '../components/Loading';
+import { Button, Input, Alert } from '../components/common';
 
 const SignupPage = () => {
   const [formData, setFormData] = useState({
@@ -12,7 +11,7 @@ const SignupPage = () => {
     confirmPassword: ''
   });
   const [errors, setErrors] = useState({});
-  
+
   const { signup, loading, error, clearError } = useAuth();
   const navigate = useNavigate();
 
@@ -22,7 +21,7 @@ const SignupPage = () => {
       ...prev,
       [name]: value
     }));
-    
+
     // 필드별 에러 초기화
     if (errors[name]) {
       setErrors(prev => ({
@@ -44,42 +43,42 @@ const SignupPage = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    
+
     if (!formData.email) {
-      newErrors.email = '이메일을 입력해주세요.';
+      newErrors.email = '이메일을 입력해주세요';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = '올바른 이메일 형식을 입력해주세요.';
+      newErrors.email = '올바른 이메일 형식을 입력해주세요';
     }
-    
+
     if (!formData.name) {
-      newErrors.name = '이름을 입력해주세요.';
+      newErrors.name = '이름을 입력해주세요';
     } else if (formData.name.length < 2) {
-      newErrors.name = '이름은 2자 이상이어야 합니다.';
+      newErrors.name = '이름은 2자 이상이어야 해요';
     }
-    
+
     if (!formData.password) {
-      newErrors.password = '비밀번호를 입력해주세요.';
+      newErrors.password = '비밀번호를 입력해주세요';
     } else if (formData.password.length < 8) {
-      newErrors.password = '비밀번호는 8자 이상이어야 합니다.';
+      newErrors.password = '비밀번호는 8자 이상이어야 해요';
     } else if (!/(?=.*[a-zA-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(formData.password)) {
-      newErrors.password = '비밀번호는 영문, 숫자, 특수문자를 포함해야 합니다.';
+      newErrors.password = '비밀번호는 영문, 숫자, 특수문자를 포함해야 해요';
     }
-    
+
     if (!formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호 확인을 입력해주세요.';
+      newErrors.confirmPassword = '비밀번호 확인을 입력해주세요';
     } else if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = '비밀번호가 일치하지 않습니다.';
+      newErrors.confirmPassword = '비밀번호가 일치하지 않아요';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       clearError();
       await signup({
@@ -94,124 +93,125 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gradient-to-br from-primary-50 to-blue-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+        {/* 로고 */}
+        <div className="flex justify-center mb-8">
+          <img
+            src="/Subing-logo.png"
+            alt="Subing"
+            className="h-12"
+          />
+        </div>
+
+        <h2 className="text-center text-3xl font-bold text-gray-900 mb-2">
           회원가입
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          또는{' '}
-          <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
-            기존 계정으로 로그인
-          </Link>
+        <p className="text-center text-gray-600">
+          구독 관리를 시작해보세요
         </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <div className="bg-white py-8 px-8 shadow-xl rounded-2xl border border-gray-100">
           {error && (
-            <ErrorMessage message={error} onClose={clearError} />
+            <div className="mb-6">
+              <Alert variant="error" onClose={clearError}>
+                {error}
+              </Alert>
+            </div>
           )}
-          
+
           <form className="space-y-6" onSubmit={handleSubmit}>
-            <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                이메일
-              </label>
-              <div className="mt-1">
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  className={`input-field ${errors.email ? 'border-red-300 focus:ring-red-500' : ''}`}
-                  placeholder="이메일을 입력하세요"
-                />
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
-            </div>
+            <Input
+              label="이메일"
+              id="email"
+              name="email"
+              type="email"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              error={errors.email}
+              placeholder="이메일을 입력하세요"
+            />
 
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                이름
-              </label>
-              <div className="mt-1">
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  autoComplete="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={`input-field ${errors.name ? 'border-red-300 focus:ring-red-500' : ''}`}
-                  placeholder="이름을 입력하세요"
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
-              </div>
-            </div>
+            <Input
+              label="이름"
+              id="name"
+              name="name"
+              type="text"
+              autoComplete="name"
+              value={formData.name}
+              onChange={handleChange}
+              error={errors.name}
+              placeholder="이름을 입력하세요"
+            />
 
-            <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                비밀번호
-              </label>
-              <div className="mt-1">
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="new-password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  onCompositionStart={handleCompositionStart}
-                  onCompositionEnd={handleCompositionEnd}
-                  className={`input-field ${errors.password ? 'border-red-300 focus:ring-red-500' : ''}`}
-                  placeholder="비밀번호를 입력하세요"
-                />
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
-              </div>
-            </div>
+            <Input
+              label="비밀번호"
+              id="password"
+              name="password"
+              type="password"
+              autoComplete="new-password"
+              value={formData.password}
+              onChange={handleChange}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              error={errors.password}
+              placeholder="비밀번호를 입력하세요"
+            />
 
-            <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
-                비밀번호 확인
-              </label>
-              <div className="mt-1">
-                <input
-                  id="confirmPassword"
-                  name="confirmPassword"
-                  type="password"
-                  autoComplete="new-password"
-                  value={formData.confirmPassword}
-                  onChange={handleChange}
-                  onCompositionStart={handleCompositionStart}
-                  onCompositionEnd={handleCompositionEnd}
-                  className={`input-field ${errors.confirmPassword ? 'border-red-300 focus:ring-red-500' : ''}`}
-                  placeholder="비밀번호를 다시 입력하세요"
-                />
-                {errors.confirmPassword && (
-                  <p className="mt-1 text-sm text-red-600">{errors.confirmPassword}</p>
-                )}
-              </div>
-            </div>
+            <Input
+              label="비밀번호 확인"
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              autoComplete="new-password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              onCompositionStart={handleCompositionStart}
+              onCompositionEnd={handleCompositionEnd}
+              error={errors.confirmPassword}
+              placeholder="비밀번호를 다시 입력하세요"
+            />
 
-            <div>
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {loading ? '회원가입 중...' : '회원가입'}
-              </button>
-            </div>
+            <Button
+              type="submit"
+              variant="primary"
+              size="base"
+              loading={loading}
+              disabled={loading}
+              className="w-full"
+            >
+              {loading ? '가입하는 중...' : '가입하기'}
+            </Button>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-200" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">
+                  이미 계정이 있으신가요?
+                </span>
+              </div>
+            </div>
+
+            <div className="mt-6">
+              <Link to="/login">
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="base"
+                  className="w-full"
+                >
+                  로그인하기
+                </Button>
+              </Link>
+            </div>
+          </div>
         </div>
       </div>
     </div>
