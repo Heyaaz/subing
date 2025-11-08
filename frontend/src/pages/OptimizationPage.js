@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { optimizationService } from '../services/optimizationService';
 import { useAuth } from '../context/AuthContext';
+import { Card, Badge, Alert } from '../components/common';
+import Loading from '../components/Loading';
 import TierLimitModal from '../components/TierLimitModal';
 
 const OptimizationPage = () => {
@@ -41,21 +43,16 @@ const OptimizationPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">최적화 제안을 분석하는 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="최적화 제안을 분석하고 있어요..." />;
   }
 
   if (!suggestions) {
     return (
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-6xl mx-auto text-center">
-          <p className="text-gray-600">최적화 제안을 불러올 수 없습니다.</p>
+        <div className="max-w-6xl mx-auto">
+          <Alert variant="error">
+            최적화 제안을 불러오지 못했어요. 다시 시도해주세요.
+          </Alert>
         </div>
       </div>
     );
@@ -68,25 +65,25 @@ const OptimizationPage = () => {
       <div className="max-w-6xl mx-auto">
         {/* 헤더 */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">구독 최적화 제안</h1>
-          <p className="text-gray-600">구독을 분석하여 비용을 절감할 수 있는 방법을 제안합니다</p>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">최적화 제안</h1>
+          <p className="text-gray-600">구독을 분석해서 비용을 절감할 수 있는 방법을 알려드려요</p>
         </div>
 
         {/* 요약 카드 */}
-        <div className={`rounded-lg shadow-lg p-6 mb-8 ${
-          hasSuggestions ? 'bg-gradient-to-r from-orange-500 to-red-500' : 'bg-gradient-to-r from-green-500 to-teal-500'
+        <div className={`rounded-xl shadow-lg p-8 mb-8 ${
+          hasSuggestions ? 'bg-gradient-to-r from-warning-500 to-error-500' : 'bg-gradient-to-r from-success-500 to-success-600'
         } text-white`}>
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <h2 className="text-2xl font-bold mb-2">
-                {hasSuggestions ? '💡 개선 기회 발견!' : '✅ 완벽한 최적화!'}
+                {hasSuggestions ? '💡 개선 기회를 찾았어요!' : '✅ 완벽하게 최적화되었어요!'}
               </h2>
               <p className="text-lg opacity-90">{suggestions.summary}</p>
             </div>
             {suggestions.totalPotentialSavings > 0 && (
               <div className="text-right ml-4">
-                <p className="text-sm opacity-90">월 최대 절약 가능</p>
-                <p className="text-4xl font-bold">{formatCurrency(suggestions.totalPotentialSavings)}</p>
+                <p className="text-sm opacity-90 mb-2">월 최대 절약 가능</p>
+                <p className="text-5xl font-bold">{formatCurrency(suggestions.totalPotentialSavings)}</p>
               </div>
             )}
           </div>
@@ -100,7 +97,7 @@ const OptimizationPage = () => {
             </h2>
             <div className="space-y-4">
               {suggestions.duplicateServices.map((group, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md border border-orange-200 p-6">
+                <Card key={index} className="border-warning-200">
                   <div className="flex items-start justify-between mb-4">
                     <div>
                       <h3 className="text-xl font-semibold text-gray-900 mb-2">
@@ -110,7 +107,7 @@ const OptimizationPage = () => {
                     </div>
                     <div className="text-right">
                       <p className="text-sm text-gray-500">총 비용</p>
-                      <p className="text-2xl font-bold text-orange-600">
+                      <p className="text-2xl font-bold text-warning-600">
                         {formatCurrency(group.totalCost)}
                       </p>
                     </div>
@@ -126,7 +123,7 @@ const OptimizationPage = () => {
                       ))}
                     </div>
                   </div>
-                </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -140,13 +137,13 @@ const OptimizationPage = () => {
             </h2>
             <div className="space-y-4">
               {suggestions.cheaperAlternatives.map((alternative, index) => (
-                <div key={index} className="bg-white rounded-lg shadow-md border border-green-200 p-6">
+                <Card key={index} className="border-success-200">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-semibold">
+                        <Badge variant="success">
                           월 {formatCurrency(alternative.savings)} 절약
-                        </span>
+                        </Badge>
                       </div>
                       <p className="text-gray-700 text-lg">{alternative.message}</p>
                     </div>
@@ -168,13 +165,13 @@ const OptimizationPage = () => {
                     </div>
 
                     {/* 대안 서비스 */}
-                    <div className="border border-green-300 rounded-lg p-4 bg-green-50">
-                      <p className="text-sm text-green-700 mb-2">추천 대안</p>
+                    <div className="border border-success-300 rounded-lg p-4 bg-success-50">
+                      <p className="text-sm text-success-700 mb-2">추천 대안</p>
                       <h4 className="text-lg font-semibold text-gray-900 mb-1">
                         {alternative.alternativeServiceName}
                       </h4>
                       <p className="text-sm text-gray-600 mb-2">{alternative.alternativePlan.planName}</p>
-                      <p className="text-2xl font-bold text-green-600">
+                      <p className="text-2xl font-bold text-success-600">
                         {formatCurrency(alternative.alternativePrice)}
                       </p>
                       {alternative.alternativeServiceUrl && (
@@ -182,7 +179,7 @@ const OptimizationPage = () => {
                           href={alternative.alternativeServiceUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-block mt-3 text-sm text-green-600 hover:text-green-700 underline"
+                          className="inline-block mt-3 text-sm text-success-600 hover:text-success-700 underline"
                         >
                           서비스 확인하기 →
                         </a>
@@ -195,7 +192,7 @@ const OptimizationPage = () => {
                       <p className="text-sm text-gray-600">{alternative.alternativePlan.description}</p>
                     </div>
                   )}
-                </div>
+                </Card>
               ))}
             </div>
           </div>
@@ -203,18 +200,18 @@ const OptimizationPage = () => {
 
         {/* 제안이 없을 때 */}
         {!hasSuggestions && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center border border-gray-200">
+          <Card className="p-12 text-center">
             <div className="text-6xl mb-4">🎉</div>
             <h3 className="text-2xl font-semibold text-gray-900 mb-2">
-              구독이 완벽하게 최적화되어 있습니다!
+              완벽하게 최적화되었어요!
             </h3>
             <p className="text-gray-600 mb-6">
-              중복 서비스도 없고, 현재 최저가로 구독 중입니다.
+              중복 서비스도 없고, 지금 최저가로 구독 중이에요.
             </p>
             <p className="text-sm text-gray-500">
               새로운 구독을 추가하거나 변경사항이 있으면 다시 확인해보세요.
             </p>
-          </div>
+          </Card>
         )}
       </div>
 
