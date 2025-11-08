@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { subscriptionService } from '../services/subscriptionService';
 import { serviceService } from '../services/serviceService';
-import ErrorMessage from '../components/ErrorMessage';
+import { Button, Card, Badge, Alert, EmptyState, Input } from '../components/common';
 import Loading from '../components/Loading';
 
 const SubscriptionPage = () => {
@@ -51,7 +51,7 @@ const SubscriptionPage = () => {
       const response = await subscriptionService.getSubscriptions(user.id, filterParams);
       setSubscriptions(response.data || []);
     } catch (error) {
-      setError('구독 목록을 불러오는데 실패했습니다.');
+      setError('구독 목록을 불러오지 못했어요. 다시 시도해주세요.');
       console.error('Load subscriptions error:', error);
     } finally {
       setLoading(false);
@@ -95,18 +95,18 @@ const SubscriptionPage = () => {
       });
       loadSubscriptions();
     } catch (error) {
-      setError('구독 추가에 실패했습니다.');
+      setError('구독을 추가하지 못했어요. 다시 시도해주세요.');
       console.error('Add subscription error:', error);
     }
   };
 
   const handleDelete = async (id) => {
-    if (window.confirm('정말로 이 구독을 삭제하시겠습니까?')) {
+    if (window.confirm('정말 이 구독을 삭제할까요?')) {
       try {
         await subscriptionService.deleteSubscription(id);
         loadSubscriptions();
       } catch (error) {
-        setError('구독 삭제에 실패했습니다.');
+        setError('구독을 삭제하지 못했어요. 다시 시도해주세요.');
         console.error('Delete subscription error:', error);
       }
     }
@@ -117,7 +117,7 @@ const SubscriptionPage = () => {
       await subscriptionService.toggleSubscriptionStatus(id, !isActive);
       loadSubscriptions();
     } catch (error) {
-      setError('구독 상태 변경에 실패했습니다.');
+      setError('구독 상태를 변경하지 못했어요. 다시 시도해주세요.');
       console.error('Toggle status error:', error);
     }
   };
@@ -171,7 +171,7 @@ const SubscriptionPage = () => {
       });
       loadSubscriptions();
     } catch (error) {
-      setError('구독 수정에 실패했습니다.');
+      setError('구독을 수정하지 못했어요. 다시 시도해주세요.');
       console.error('Update subscription error:', error);
     }
   };
@@ -190,23 +190,23 @@ const SubscriptionPage = () => {
   };
 
   if (loading) {
-    return <Loading text="구독 목록을 불러오는 중..." />;
+    return <Loading text="구독 목록을 불러오고 있어요..." />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">구독 관리</h1>
-          <button
+          <h1 className="text-3xl font-bold text-gray-900">내 구독</h1>
+          <Button
+            variant="primary"
             onClick={() => setShowAddForm(true)}
-            className="btn-primary"
           >
-            구독 추가
-          </button>
+            구독 추가하기
+          </Button>
         </div>
 
         {/* 필터/정렬 UI */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
+        <Card className="mb-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* 카테고리 필터 */}
             <div>
@@ -270,35 +270,36 @@ const SubscriptionPage = () => {
 
             {/* 필터 초기화 버튼 */}
             <div className="flex items-end">
-              <button
+              <Button
+                variant="secondary"
                 onClick={handleResetFilters}
-                className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                className="w-full"
               >
-                필터 초기화
-              </button>
+                초기화
+              </Button>
             </div>
           </div>
-        </div>
+        </Card>
 
         {error && (
-          <ErrorMessage message={error} onClose={() => setError(null)} />
+          <div className="mb-6">
+            <Alert variant="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          </div>
         )}
 
         {/* 구독 목록 */}
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {subscriptions.map((subscription) => (
-            <div key={subscription.id} className="card">
+            <Card key={subscription.id} hover>
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {subscription.serviceName || '서비스명'}
                 </h3>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  subscription.isActive 
-                    ? 'bg-green-100 text-green-800' 
-                    : 'bg-red-100 text-red-800'
-                }`}>
+                <Badge variant={subscription.isActive ? 'success' : 'error'}>
                   {subscription.isActive ? '활성' : '비활성'}
-                </span>
+                </Badge>
               </div>
               
               <div className="space-y-2 mb-4">
@@ -319,50 +320,49 @@ const SubscriptionPage = () => {
               </div>
 
               <div className="flex space-x-2">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => handleEdit(subscription)}
-                  className="px-3 py-1 rounded text-sm bg-blue-100 text-blue-700 hover:bg-blue-200"
                 >
-                  수정
-                </button>
-                <button
+                  수정하기
+                </Button>
+                <Button
+                  variant={subscription.isActive ? 'danger' : 'primary'}
+                  size="sm"
                   onClick={() => handleToggleStatus(subscription.id, subscription.isActive)}
-                  className={`px-3 py-1 rounded text-sm ${
-                    subscription.isActive
-                      ? 'bg-red-100 text-red-700 hover:bg-red-200'
-                      : 'bg-green-100 text-green-700 hover:bg-green-200'
-                  }`}
                 >
                   {subscription.isActive ? '비활성화' : '활성화'}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => handleDelete(subscription.id)}
-                  className="px-3 py-1 rounded text-sm bg-gray-100 text-gray-700 hover:bg-gray-200"
                 >
-                  삭제
-                </button>
+                  삭제하기
+                </Button>
               </div>
-            </div>
+            </Card>
           ))}
         </div>
 
         {subscriptions.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">등록된 구독이 없습니다.</p>
-            <button
-              onClick={() => setShowAddForm(true)}
-              className="mt-4 btn-primary"
-            >
-              첫 번째 구독 추가하기
-            </button>
-          </div>
+          <EmptyState
+            title="등록된 구독이 없어요"
+            description="첫 구독을 추가하고 관리를 시작해보세요"
+            action={
+              <Button variant="primary" onClick={() => setShowAddForm(true)}>
+                구독 추가하기
+              </Button>
+            }
+          />
         )}
 
         {/* 구독 추가 모달 */}
         {showAddForm && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">구독 추가</h2>
+            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">구독 추가하기</h2>
               
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
@@ -462,19 +462,21 @@ const SubscriptionPage = () => {
                 </div>
 
                 <div className="flex space-x-3">
-                  <button
+                  <Button
                     type="submit"
-                    className="flex-1 btn-primary"
+                    variant="primary"
+                    className="flex-1"
                   >
-                    추가
-                  </button>
-                  <button
+                    추가하기
+                  </Button>
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={() => setShowAddForm(false)}
-                    className="flex-1 btn-secondary"
+                    className="flex-1"
                   >
                     취소
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
@@ -484,8 +486,8 @@ const SubscriptionPage = () => {
         {/* 구독 수정 모달 */}
         {showEditForm && editingSubscription && (
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg p-6 w-full max-w-md">
-              <h2 className="text-xl font-bold mb-4">구독 수정</h2>
+            <div className="bg-white rounded-2xl p-8 w-full max-w-md shadow-2xl">
+              <h2 className="text-2xl font-bold mb-6 text-gray-900">구독 수정하기</h2>
 
               <form onSubmit={handleUpdate} className="space-y-4">
                 <div>
@@ -577,19 +579,21 @@ const SubscriptionPage = () => {
                 </div>
 
                 <div className="flex space-x-3">
-                  <button
+                  <Button
                     type="submit"
-                    className="flex-1 btn-primary"
+                    variant="primary"
+                    className="flex-1"
                   >
-                    수정
-                  </button>
-                  <button
+                    수정하기
+                  </Button>
+                  <Button
                     type="button"
+                    variant="secondary"
                     onClick={handleCancelEdit}
-                    className="flex-1 btn-secondary"
+                    className="flex-1"
                   >
                     취소
-                  </button>
+                  </Button>
                 </div>
               </form>
             </div>
