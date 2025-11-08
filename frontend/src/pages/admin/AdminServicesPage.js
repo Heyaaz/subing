@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllServices, createService, updateService, deleteService } from '../../services/adminService';
+import { Button, Badge } from '../../components/common';
+import Loading from '../../components/Loading';
 
 const AdminServicesPage = () => {
   const navigate = useNavigate();
@@ -30,7 +32,7 @@ const AdminServicesPage = () => {
     } catch (error) {
       console.error('서비스 목록 조회 실패:', error);
       if (error.response?.status === 403) {
-        alert('관리자 권한이 필요합니다.');
+        alert('관리자 권한이 필요해요.');
         navigate('/');
       }
     } finally {
@@ -69,40 +71,36 @@ const AdminServicesPage = () => {
     try {
       if (editingService) {
         await updateService(editingService.id, formData);
-        alert('서비스가 수정되었습니다.');
+        alert('서비스가 수정되었어요.');
       } else {
         await createService(formData);
-        alert('서비스가 추가되었습니다.');
+        alert('서비스가 추가되었어요.');
       }
       setShowModal(false);
       fetchServices();
     } catch (error) {
       console.error('서비스 저장 실패:', error);
-      alert('서비스 저장에 실패했습니다.');
+      alert('서비스를 저장하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   const handleDelete = async (serviceId) => {
-    if (!window.confirm('정말로 이 서비스를 삭제하시겠습니까?')) {
+    if (!window.confirm('정말로 이 서비스를 삭제할까요?')) {
       return;
     }
 
     try {
       await deleteService(serviceId);
-      alert('서비스가 삭제되었습니다.');
+      alert('서비스가 삭제되었어요.');
       fetchServices();
     } catch (error) {
       console.error('서비스 삭제 실패:', error);
-      alert('서비스 삭제에 실패했습니다.');
+      alert('서비스를 삭제하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">로딩 중...</div>
-      </div>
-    );
+    return <Loading text="서비스 목록을 불러오고 있어요..." />;
   }
 
   return (
@@ -117,18 +115,18 @@ const AdminServicesPage = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              <button
+              <Button
+                variant="primary"
                 onClick={handleCreate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                + 서비스 추가
-              </button>
-              <button
+                + 서비스 추가하기
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => navigate('/admin')}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
                 대시보드로
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -165,18 +163,22 @@ const AdminServicesPage = () => {
                 </div>
               </div>
               <div className="flex gap-2 mt-4">
-                <button
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={() => handleEdit(service)}
-                  className="flex-1 px-3 py-2 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                  className="flex-1"
                 >
                   수정
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="danger"
+                  size="sm"
                   onClick={() => handleDelete(service.id)}
-                  className="flex-1 px-3 py-2 bg-red-600 text-white text-sm rounded hover:bg-red-700"
+                  className="flex-1"
                 >
                   삭제
-                </button>
+                </Button>
               </div>
             </div>
           ))}
@@ -203,7 +205,7 @@ const AdminServicesPage = () => {
                     setFormData({ ...formData, serviceName: e.target.value })
                   }
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -217,7 +219,7 @@ const AdminServicesPage = () => {
                     setFormData({ ...formData, category: e.target.value })
                   }
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
                   {categories.map((cat) => (
                     <option key={cat} value={cat}>
@@ -237,7 +239,7 @@ const AdminServicesPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, iconUrl: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -251,7 +253,7 @@ const AdminServicesPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, officialUrl: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -265,24 +267,26 @@ const AdminServicesPage = () => {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                  variant="primary"
+                  className="flex-1"
                 >
-                  {editingService ? '수정' : '추가'}
-                </button>
-                <button
+                  {editingService ? '수정하기' : '추가하기'}
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                  className="flex-1"
                 >
                   취소
-                </button>
+                </Button>
               </div>
             </form>
           </div>
