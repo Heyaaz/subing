@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { statisticsService } from '../services/statisticsService';
-import ErrorMessage from '../components/ErrorMessage';
+import { Card, Alert, EmptyState } from '../components/common';
 import Loading from '../components/Loading';
 import MonthlyExpenseChart from '../components/charts/MonthlyExpenseChart';
 import CategoryExpenseChart from '../components/charts/CategoryExpenseChart';
@@ -39,7 +39,7 @@ const StatisticsPage = () => {
         amount: item.totalAmount
       })));
     } catch (error) {
-      setError('통계 데이터를 불러오는데 실패했습니다.');
+      setError('통계 데이터를 불러오지 못했어요. 다시 시도해주세요.');
       console.error('Load statistics error:', error);
     } finally {
       setLoading(false);
@@ -55,13 +55,13 @@ const StatisticsPage = () => {
   };
 
   if (loading) {
-    return <Loading text="통계 데이터를 불러오는 중..." />;
+    return <Loading text="통계 데이터를 분석하고 있어요..." />;
   }
 
   return (
     <div className="container mx-auto px-4 py-8">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">통계 대시보드</h1>
+          <h1 className="text-3xl font-bold text-gray-900">지출 분석</h1>
           
           <div className="flex space-x-4">
             <select
@@ -94,56 +94,63 @@ const StatisticsPage = () => {
         </div>
 
         {error && (
-          <ErrorMessage message={error} onClose={() => setError(null)} />
+          <div className="mb-6">
+            <Alert variant="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          </div>
         )}
 
         {/* 월별 지출 요약 */}
         {monthlyExpense && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">이번 달 총 지출</h3>
-              <p className="text-3xl font-bold text-primary-600">
-                {formatCurrency(monthlyExpense.totalAmount)}원
+            <Card>
+              <h3 className="text-sm font-medium text-gray-600 mb-2">이번 달 총 지출</h3>
+              <p className="text-4xl font-bold text-primary-600">
+                {formatCurrency(monthlyExpense.totalAmount)}
+                <span className="text-lg text-gray-500 ml-1">원</span>
               </p>
-            </div>
-            
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">활성 구독 수</h3>
-              <p className="text-3xl font-bold text-green-600">
-                {monthlyExpense.activeSubscriptionCount}개
+            </Card>
+
+            <Card>
+              <h3 className="text-sm font-medium text-gray-600 mb-2">활성 구독 수</h3>
+              <p className="text-4xl font-bold text-success-600">
+                {monthlyExpense.activeSubscriptionCount}
+                <span className="text-lg text-gray-500 ml-1">개</span>
               </p>
-            </div>
-            
-            <div className="card">
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">평균 구독 비용</h3>
-              <p className="text-3xl font-bold text-blue-600">
-                {monthlyExpense.activeSubscriptionCount > 0 
+            </Card>
+
+            <Card>
+              <h3 className="text-sm font-medium text-gray-600 mb-2">평균 구독 비용</h3>
+              <p className="text-4xl font-bold text-info-600">
+                {monthlyExpense.activeSubscriptionCount > 0
                   ? formatCurrency(monthlyExpense.totalAmount / monthlyExpense.activeSubscriptionCount)
                   : '0'
-                }원
+                }
+                <span className="text-lg text-gray-500 ml-1">원</span>
               </p>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* 차트 섹션 */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           {/* 월별 지출 트렌드 차트 */}
-          <div className="card">
+          <Card>
             <h2 className="text-xl font-bold text-gray-900 mb-4">월별 지출 트렌드 ({selectedYear}년)</h2>
             <MonthlyExpenseChart data={yearlyTrend} />
-          </div>
+          </Card>
 
           {/* 카테고리별 지출 차트 */}
-          <div className="card">
+          <Card>
             <h2 className="text-xl font-bold text-gray-900 mb-4">카테고리별 지출 분포</h2>
             <CategoryExpenseChart data={monthlyExpense?.categoryExpenses || []} />
-          </div>
+          </Card>
         </div>
 
         {/* 카테고리별 지출 상세 */}
         {monthlyExpense?.categoryExpenses && monthlyExpense.categoryExpenses.length > 0 && (
-          <div className="card mb-8">
+          <Card className="mb-8">
             <h2 className="text-xl font-bold text-gray-900 mb-6">카테고리별 지출 상세</h2>
             <div className="space-y-4">
               {monthlyExpense.categoryExpenses.map((category, index) => (
@@ -171,14 +178,14 @@ const StatisticsPage = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </Card>
         )}
 
         {/* 지출 분석 */}
         {expenseAnalysis && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* 월별 변화 */}
-            <div className="card">
+            <Card>
               <h2 className="text-xl font-bold text-gray-900 mb-4">월별 변화</h2>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -206,10 +213,10 @@ const StatisticsPage = () => {
                   </span>
                 </div>
               </div>
-            </div>
+            </Card>
 
             {/* 연간 통계 */}
-            <div className="card">
+            <Card>
               <h2 className="text-xl font-bold text-gray-900 mb-4">연간 통계</h2>
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
@@ -221,13 +228,13 @@ const StatisticsPage = () => {
                   <span className="font-medium">{formatCurrency(expenseAnalysis.averageMonthlyExpense)}원</span>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
         )}
 
         {/* 추천사항 */}
         {expenseAnalysis?.recommendations && expenseAnalysis.recommendations.length > 0 && (
-          <div className="card mt-6">
+          <Card className="mt-6">
             <h2 className="text-xl font-bold text-gray-900 mb-4">추천사항</h2>
             <ul className="space-y-2">
               {expenseAnalysis.recommendations.map((recommendation, index) => (
@@ -237,15 +244,15 @@ const StatisticsPage = () => {
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         )}
 
         {/* 데이터가 없는 경우 */}
         {(!monthlyExpense || monthlyExpense.totalAmount === 0) && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 text-lg">통계 데이터가 없습니다.</p>
-            <p className="text-gray-400 mt-2">구독을 추가하면 통계를 확인할 수 있습니다.</p>
-          </div>
+          <EmptyState
+            title="아직 분석할 데이터가 없어요"
+            description="구독을 추가하면 지출 통계를 확인할 수 있어요"
+          />
         )}
     </div>
   );
