@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { notificationService } from '../services/notificationService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Card, Badge, EmptyState } from '../components/common';
+import Loading from '../components/Loading';
 
 const NotificationPage = () => {
   const { user } = useAuth();
@@ -66,11 +68,11 @@ const NotificationPage = () => {
   const getNotificationColor = (type) => {
     switch (type) {
       case 'PAYMENT_DUE_3DAYS':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-info-50 border-info-200';
       case 'PAYMENT_DUE_1DAY':
-        return 'bg-orange-50 border-orange-200';
+        return 'bg-warning-50 border-warning-200';
       case 'BUDGET_EXCEEDED':
-        return 'bg-red-50 border-red-200';
+        return 'bg-error-50 border-error-200';
       case 'UNUSED_SUBSCRIPTION':
         return 'bg-gray-50 border-gray-200';
       default:
@@ -79,14 +81,7 @@ const NotificationPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">알림을 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="알림을 불러오고 있어요..." />;
   }
 
   return (
@@ -95,32 +90,34 @@ const NotificationPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">알림</h1>
-            <p className="text-gray-600">중요한 알림을 확인하세요</p>
+            <p className="text-gray-600">중요한 알림을 확인해요</p>
           </div>
           {notifications.some(n => !n.isRead) && (
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={handleMarkAllAsRead}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold text-sm"
             >
               모두 읽음 처리
-            </button>
+            </Button>
           )}
         </div>
 
         {notifications.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center border border-gray-200">
-            <div className="text-6xl mb-4">🔔</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">알림이 없습니다</h3>
-            <p className="text-gray-600">새로운 알림이 생기면 여기에 표시됩니다.</p>
-          </div>
+          <EmptyState
+            title="알림이 없어요"
+            description="새로운 알림이 생기면 여기에 표시돼요"
+            icon="🔔"
+          />
         ) : (
           <div className="space-y-4">
             {notifications.map((notification) => (
-              <div
+              <Card
                 key={notification.id}
-                className={`rounded-lg shadow-md p-6 border transition cursor-pointer ${
+                hover
+                className={`cursor-pointer ${
                   notification.isRead
-                    ? 'bg-white border-gray-200 opacity-75'
+                    ? 'opacity-75'
                     : getNotificationColor(notification.type)
                 }`}
                 onClick={() => !notification.isRead && handleMarkAsRead(notification.id)}
@@ -133,9 +130,7 @@ const NotificationPage = () => {
                         {notification.title}
                       </h3>
                       {!notification.isRead && (
-                        <span className="inline-block bg-blue-500 text-white text-xs font-semibold px-2 py-1 rounded-full">
-                          NEW
-                        </span>
+                        <Badge variant="primary">NEW</Badge>
                       )}
                     </div>
                     <p className="text-gray-700 mb-3">{notification.message}</p>
@@ -150,7 +145,7 @@ const NotificationPage = () => {
                     </p>
                   </div>
                 </div>
-              </div>
+              </Card>
             ))}
           </div>
         )}
