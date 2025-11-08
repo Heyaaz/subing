@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllUsers, updateUser, deleteUser } from '../../services/adminService';
+import { Button, Badge } from '../../components/common';
+import Loading from '../../components/Loading';
 
 const AdminUsersPage = () => {
   const navigate = useNavigate();
@@ -20,7 +22,7 @@ const AdminUsersPage = () => {
     } catch (error) {
       console.error('사용자 목록 조회 실패:', error);
       if (error.response?.status === 403) {
-        alert('관리자 권한이 필요합니다.');
+        alert('관리자 권한이 필요해요.');
         navigate('/');
       }
     } finally {
@@ -39,36 +41,32 @@ const AdminUsersPage = () => {
   const handleUpdate = async () => {
     try {
       await updateUser(editingUser.id, formData);
-      alert('사용자 정보가 업데이트되었습니다.');
+      alert('사용자 정보가 업데이트되었어요.');
       setEditingUser(null);
       fetchUsers();
     } catch (error) {
       console.error('사용자 업데이트 실패:', error);
-      alert('사용자 업데이트에 실패했습니다.');
+      alert('사용자 정보를 업데이트하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   const handleDelete = async (userId) => {
-    if (!window.confirm('정말로 이 사용자를 삭제하시겠습니까?')) {
+    if (!window.confirm('정말로 이 사용자를 삭제할까요?')) {
       return;
     }
 
     try {
       await deleteUser(userId);
-      alert('사용자가 삭제되었습니다.');
+      alert('사용자가 삭제되었어요.');
       fetchUsers();
     } catch (error) {
       console.error('사용자 삭제 실패:', error);
-      alert('사용자 삭제에 실패했습니다.');
+      alert('사용자를 삭제하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">로딩 중...</div>
-      </div>
-    );
+    return <Loading text="사용자 목록을 불러오고 있어요..." />;
   }
 
   return (
@@ -82,12 +80,12 @@ const AdminUsersPage = () => {
                 전체 사용자: {users.length}명
               </p>
             </div>
-            <button
+            <Button
+              variant="secondary"
               onClick={() => navigate('/admin')}
-              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
             >
               대시보드로
-            </button>
+            </Button>
           </div>
         </div>
       </div>
@@ -133,26 +131,14 @@ const AdminUsersPage = () => {
                     {user.name}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.tier === 'PRO'
-                          ? 'bg-purple-100 text-purple-800'
-                          : 'bg-gray-100 text-gray-800'
-                      }`}
-                    >
+                    <Badge variant={user.tier === 'PRO' ? 'primary' : 'secondary'}>
                       {user.tier}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span
-                      className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                        user.role === 'ADMIN'
-                          ? 'bg-red-100 text-red-800'
-                          : 'bg-blue-100 text-blue-800'
-                      }`}
-                    >
+                    <Badge variant={user.role === 'ADMIN' ? 'error' : 'info'}>
                       {user.role}
-                    </span>
+                    </Badge>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                     {new Date(user.createdAt).toLocaleDateString('ko-KR')}
@@ -160,13 +146,13 @@ const AdminUsersPage = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleEdit(user)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="text-primary-600 hover:text-primary-900 mr-4 font-medium"
                     >
                       수정
                     </button>
                     <button
                       onClick={() => handleDelete(user.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-error-600 hover:text-error-900 font-medium"
                     >
                       삭제
                     </button>
@@ -208,7 +194,7 @@ const AdminUsersPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, tier: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="FREE">FREE</option>
                   <option value="PRO">PRO</option>
@@ -224,7 +210,7 @@ const AdminUsersPage = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
                   }
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 >
                   <option value="USER">USER</option>
                   <option value="ADMIN">ADMIN</option>
@@ -233,18 +219,20 @@ const AdminUsersPage = () => {
             </div>
 
             <div className="flex gap-3 mt-6">
-              <button
+              <Button
+                variant="primary"
                 onClick={handleUpdate}
-                className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                className="flex-1"
               >
-                저장
-              </button>
-              <button
+                저장하기
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => setEditingUser(null)}
-                className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                className="flex-1"
               >
                 취소
-              </button>
+              </Button>
             </div>
           </div>
         </div>
