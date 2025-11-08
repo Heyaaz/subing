@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Card, Badge, EmptyState } from '../components/common';
+import Loading from '../components/Loading';
 
 const RecommendationHistoryPage = () => {
   const navigate = useNavigate();
@@ -40,14 +42,7 @@ const RecommendationHistoryPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">추천 기록을 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="추천 기록을 불러오고 있어요..." />;
   }
 
   return (
@@ -56,28 +51,26 @@ const RecommendationHistoryPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">추천 기록</h1>
-            <p className="text-gray-600">이전에 받았던 AI 추천을 확인하세요</p>
+            <p className="text-gray-600">이전에 받았던 AI 추천을 확인해요</p>
           </div>
-          <button
+          <Button
+            variant="primary"
             onClick={() => navigate('/recommendation/quiz')}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
           >
             새 추천 받기
-          </button>
+          </Button>
         </div>
 
         {history.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center border border-gray-200">
-            <div className="text-6xl mb-4">📋</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">추천 기록이 없습니다</h3>
-            <p className="text-gray-600 mb-6">AI 추천 테스트를 진행하여 맞춤 서비스를 찾아보세요!</p>
-            <button
-              onClick={() => navigate('/recommendation/quiz')}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
-            >
-              추천 테스트 시작하기
-            </button>
-          </div>
+          <EmptyState
+            title="추천 기록이 없어요"
+            description="AI 추천 테스트를 진행하여 맞춤 서비스를 찾아보세요!"
+            icon="📋"
+            action={{
+              label: '추천 테스트 시작하기',
+              onClick: () => navigate('/recommendation/quiz')
+            }}
+          />
         ) : (
           <div className="space-y-4">
             {history.map((item, index) => {
@@ -90,17 +83,18 @@ const RecommendationHistoryPage = () => {
               }
 
               return (
-                <div
+                <Card
                   key={item.id}
-                  className="bg-white rounded-lg shadow-md p-6 border border-gray-200 hover:shadow-lg transition cursor-pointer"
+                  hover
+                  className="cursor-pointer"
                   onClick={() => viewRecommendation(item)}
                 >
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <span className="inline-block bg-blue-100 text-blue-800 text-sm font-semibold px-3 py-1 rounded-full">
+                        <Badge variant="primary">
                           #{history.length - index}
-                        </span>
+                        </Badge>
                         <span className="text-gray-500 text-sm">
                           {new Date(item.createdAt).toLocaleDateString('ko-KR', {
                             year: 'numeric',
@@ -113,43 +107,37 @@ const RecommendationHistoryPage = () => {
                       </div>
                       <div className="flex flex-wrap gap-2 mb-3">
                         {quizData.interests?.map((interest, i) => (
-                          <span
-                            key={i}
-                            className="inline-block bg-gray-100 text-gray-700 text-xs font-medium px-2 py-1 rounded"
-                          >
+                          <Badge key={i} variant="secondary">
                             {interest}
-                          </span>
+                          </Badge>
                         ))}
-                        <span className="inline-block bg-green-100 text-green-700 text-xs font-medium px-2 py-1 rounded">
+                        <Badge variant="success">
                           예산: {quizData.budget?.toLocaleString()}원
-                        </span>
+                        </Badge>
                       </div>
                       <p className="text-gray-700 font-medium">
                         {resultData.recommendations?.length || 0}개 서비스 추천받음
                       </p>
                     </div>
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold text-sm">
+                    <Button variant="primary" size="sm">
                       자세히 보기
-                    </button>
+                    </Button>
                   </div>
                   <div className="border-t border-gray-200 pt-4">
                     <div className="flex gap-2 flex-wrap">
                       {resultData.recommendations?.slice(0, 3).map((rec, i) => (
-                        <span
-                          key={i}
-                          className="inline-block bg-blue-50 text-blue-700 text-sm font-medium px-3 py-1 rounded"
-                        >
+                        <Badge key={i} variant="info">
                           {rec.serviceName}
-                        </span>
+                        </Badge>
                       ))}
                       {resultData.recommendations?.length > 3 && (
-                        <span className="inline-block bg-gray-100 text-gray-600 text-sm font-medium px-3 py-1 rounded">
+                        <Badge variant="secondary">
                           +{resultData.recommendations.length - 3}
-                        </span>
+                        </Badge>
                       )}
                     </div>
                   </div>
-                </div>
+                </Card>
               );
             })}
           </div>
