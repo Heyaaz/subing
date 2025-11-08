@@ -41,12 +41,12 @@ const Header = () => {
 
   const navigationItems = [
     { path: '/dashboard', label: '대시보드' },
-    { path: '/subscriptions', label: '구독 관리' },
+    { path: '/subscriptions', label: '내 구독' },
     { path: '/budget', label: '예산 관리' },
-    { path: '/optimization', label: '최적화 제안' },
+    { path: '/optimization', label: '최적화' },
     { path: '/comparison', label: '서비스 비교' },
     { path: '/recommendation/quiz', label: 'AI 추천' },
-    { path: '/statistics', label: '통계' },
+    { path: '/statistics', label: '지출 분석' },
     { path: '/tier', label: '멤버십' }
   ];
 
@@ -56,8 +56,12 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* 로고 */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="text-xl font-bold text-primary-600">
-              Subing
+            <Link to="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
+              <img
+                src="/Subing-logo.png"
+                alt="Subing"
+                className="h-8"
+              />
             </Link>
           </div>
 
