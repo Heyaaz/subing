@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { notificationSettingService } from '../services/notificationSettingService';
+import { Card, EmptyState } from '../components/common';
+import Loading from '../components/Loading';
 
 const NotificationSettingsPage = () => {
   const { user } = useAuth();
@@ -21,7 +23,7 @@ const NotificationSettingsPage = () => {
       setSettings(response.data);
     } catch (error) {
       console.error('Failed to fetch notification settings:', error);
-      alert('알림 설정을 불러오는데 실패했습니다.');
+      alert('알림 설정을 불러오지 못했어요. 다시 시도해주세요.');
     } finally {
       setLoading(false);
     }
@@ -46,7 +48,7 @@ const NotificationSettingsPage = () => {
       );
     } catch (error) {
       console.error('Failed to update notification setting:', error);
-      alert('알림 설정 변경에 실패했습니다.');
+      alert('알림 설정을 변경하지 못했어요. 다시 시도해주세요.');
     }
   };
 
@@ -68,11 +70,11 @@ const NotificationSettingsPage = () => {
   const getNotificationColor = (type) => {
     switch (type) {
       case 'PAYMENT_DUE_3DAYS':
-        return 'bg-blue-50 border-blue-200';
+        return 'bg-info-50 border-info-200';
       case 'PAYMENT_DUE_1DAY':
-        return 'bg-orange-50 border-orange-200';
+        return 'bg-warning-50 border-warning-200';
       case 'BUDGET_EXCEEDED':
-        return 'bg-red-50 border-red-200';
+        return 'bg-error-50 border-error-200';
       case 'UNUSED_SUBSCRIPTION':
         return 'bg-gray-50 border-gray-200';
       default:
@@ -81,14 +83,7 @@ const NotificationSettingsPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">알림 설정을 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="알림 설정을 불러오고 있어요..." />;
   }
 
   return (
@@ -96,7 +91,7 @@ const NotificationSettingsPage = () => {
       <div className="max-w-4xl mx-auto">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">알림 설정</h1>
-          <p className="text-gray-600">받고 싶은 알림 타입을 선택하세요</p>
+          <p className="text-gray-600">받고 싶은 알림 타입을 선택해요</p>
         </div>
 
         <div className="bg-white rounded-lg shadow-md border border-gray-200">
@@ -126,7 +121,7 @@ const NotificationSettingsPage = () => {
                   <button
                     onClick={() => handleToggle(setting.notificationType, setting.isEnabled)}
                     className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${
-                      setting.isEnabled ? 'bg-blue-600' : 'bg-gray-300'
+                      setting.isEnabled ? 'bg-primary-600' : 'bg-gray-300'
                     }`}
                   >
                     <span
@@ -142,11 +137,11 @@ const NotificationSettingsPage = () => {
         </div>
 
         {settings.length === 0 && (
-          <div className="bg-white rounded-lg shadow-md p-12 text-center border border-gray-200">
-            <div className="text-6xl mb-4">🔔</div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">알림 설정이 없습니다</h3>
-            <p className="text-gray-600">설정을 불러오는 중 문제가 발생했습니다.</p>
-          </div>
+          <EmptyState
+            title="알림 설정이 없어요"
+            description="설정을 불러오는 중 문제가 발생했어요. 다시 시도해주세요."
+            icon="🔔"
+          />
         )}
       </div>
     </div>
