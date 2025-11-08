@@ -15,6 +15,10 @@ import NotificationSettingsPage from './pages/NotificationSettingsPage';
 import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
 import TierPage from './pages/TierPage';
+import AdminDashboard from './pages/admin/AdminDashboard';
+import AdminUsersPage from './pages/admin/AdminUsersPage';
+import AdminServicesPage from './pages/admin/AdminServicesPage';
+import AdminPlansPage from './pages/admin/AdminPlansPage';
 import Loading from './components/Loading';
 
 // Private Route 컴포넌트
@@ -210,6 +214,40 @@ function App() {
                     <Header />
                     <TierPage />
                   </div>
+                </PrivateRoute>
+              }
+            />
+
+            {/* Admin Routes */}
+            <Route
+              path="/admin"
+              element={
+                <PrivateRoute>
+                  <AdminDashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/users"
+              element={
+                <PrivateRoute>
+                  <AdminUsersPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/services"
+              element={
+                <PrivateRoute>
+                  <AdminServicesPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/admin/plans"
+              element={
+                <PrivateRoute>
+                  <AdminPlansPage />
                 </PrivateRoute>
               }
             />
