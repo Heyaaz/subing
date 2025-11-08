@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { serviceService } from '../services/serviceService';
-import ErrorMessage from '../components/ErrorMessage';
+import { Button, Card, Badge, Alert } from '../components/common';
 import Loading from '../components/Loading';
 
 const ComparisonPage = () => {
@@ -21,7 +21,7 @@ const ComparisonPage = () => {
       const response = await serviceService.getAllServices();
       setServices(response.data || []);
     } catch (error) {
-      setError('서비스 목록을 불러오는데 실패했습니다.');
+      setError('서비스 목록을 불러오지 못했어요. 다시 시도해주세요.');
       console.error('Load services error:', error);
     } finally {
       setLoading(false);
@@ -33,7 +33,7 @@ const ComparisonPage = () => {
       setSelectedServices(selectedServices.filter(id => id !== serviceId));
     } else {
       if (selectedServices.length >= 5) {
-        setError('최대 5개까지 선택할 수 있습니다.');
+        setError('최대 5개까지 선택할 수 있어요.');
         return;
       }
       setSelectedServices([...selectedServices, serviceId]);
@@ -52,7 +52,7 @@ const ComparisonPage = () => {
       const response = await serviceService.compareServices(selectedServices);
       setComparisonResult(response.data);
     } catch (error) {
-      setError('서비스 비교에 실패했습니다.');
+      setError('서비스를 비교하지 못했어요. 다시 시도해주세요.');
       console.error('Compare services error:', error);
     } finally {
       setComparing(false);
@@ -79,7 +79,7 @@ const ComparisonPage = () => {
   };
 
   if (loading) {
-    return <Loading text="서비스 목록을 불러오는 중..." />;
+    return <Loading text="서비스 목록을 불러오고 있어요..." />;
   }
 
   return (
@@ -87,29 +87,34 @@ const ComparisonPage = () => {
       <h1 className="text-3xl font-bold text-gray-900 mb-8">서비스 비교</h1>
 
       {error && (
-        <ErrorMessage message={error} onClose={() => setError(null)} />
+        <div className="mb-6">
+          <Alert variant="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        </div>
       )}
 
       {/* 서비스 선택 영역 */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+      <Card className="mb-8">
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-xl font-semibold text-gray-900">
             비교할 서비스 선택 ({selectedServices.length}/5)
           </h2>
           <div className="space-x-3">
-            <button
+            <Button
+              variant="primary"
               onClick={handleCompare}
               disabled={selectedServices.length < 2 || comparing}
-              className="btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
+              loading={comparing}
             >
-              {comparing ? '비교 중...' : '비교하기'}
-            </button>
-            <button
+              {comparing ? '비교하는 중...' : '비교하기'}
+            </Button>
+            <Button
+              variant="secondary"
               onClick={handleReset}
-              className="btn-secondary"
             >
               초기화
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -120,29 +125,29 @@ const ComparisonPage = () => {
               onClick={() => handleServiceToggle(service.id)}
               className={`p-4 border-2 rounded-lg cursor-pointer transition ${
                 selectedServices.includes(service.id)
-                  ? 'border-blue-500 bg-blue-50'
+                  ? 'border-primary-500 bg-primary-50'
                   : 'border-gray-200 hover:border-gray-300'
               }`}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-gray-900">{service.name}</h3>
                 {selectedServices.includes(service.id) && (
-                  <svg className="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                  <svg className="w-5 h-5 text-primary-500" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
                 )}
               </div>
-              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(service.category)}`}>
+              <Badge variant={service.category === 'OTT' ? 'primary' : 'secondary'}>
                 {service.category}
-              </span>
+              </Badge>
             </div>
           ))}
         </div>
-      </div>
+      </Card>
 
       {/* 비교 결과 영역 */}
       {comparisonResult && (
-        <div className="bg-white rounded-lg shadow-sm p-6">
+        <Card>
           <h2 className="text-xl font-semibold text-gray-900 mb-6">비교 결과</h2>
 
           {/* 비교 테이블 */}
@@ -164,9 +169,9 @@ const ComparisonPage = () => {
                   <td className="px-4 py-3 text-sm font-medium text-gray-700">카테고리</td>
                   {comparisonResult.services?.map((service) => (
                     <td key={service.id} className="px-4 py-3 text-center">
-                      <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(service.category)}`}>
+                      <Badge variant="secondary">
                         {service.category}
-                      </span>
+                      </Badge>
                     </td>
                   ))}
                 </tr>
@@ -201,7 +206,7 @@ const ComparisonPage = () => {
                           href={service.websiteUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-800 underline"
+                          className="text-primary-600 hover:text-primary-800 underline"
                         >
                           방문하기
                         </a>
@@ -222,16 +227,14 @@ const ComparisonPage = () => {
               <p className="text-sm text-gray-600">{comparisonResult.summary}</p>
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* 안내 메시지 */}
       {!comparisonResult && !comparing && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 text-center">
-          <p className="text-blue-800">
-            비교할 서비스를 2개 이상 선택한 후 '비교하기' 버튼을 클릭하세요.
-          </p>
-        </div>
+        <Alert variant="info">
+          비교할 서비스를 2개 이상 선택한 후 '비교하기' 버튼을 클릭해주세요.
+        </Alert>
       )}
     </div>
   );
