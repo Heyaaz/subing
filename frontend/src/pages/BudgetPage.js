@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { budgetService } from '../services/budgetService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Card, Alert, EmptyState, Input } from '../components/common';
+import Loading from '../components/Loading';
 
 const BudgetPage = () => {
   const { user } = useAuth();
@@ -56,7 +58,7 @@ const BudgetPage = () => {
     e.preventDefault();
 
     if (!user?.id) {
-      alert('로그인이 필요합니다.');
+      alert('로그인이 필요해요.');
       return;
     }
 
@@ -72,7 +74,7 @@ const BudgetPage = () => {
         parseInt(formData.month),
         parseInt(formData.monthlyLimit)
       );
-      alert('예산이 설정되었습니다.');
+      alert('예산이 설정되었어요!');
       setShowForm(false);
       setFormData({
         year: new Date().getFullYear(),
@@ -83,28 +85,28 @@ const BudgetPage = () => {
       fetchCurrentBudget();
     } catch (error) {
       console.error('Failed to set budget:', error);
-      alert('예산 설정에 실패했습니다.');
+      alert('예산을 설정하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   const handleDelete = async (budgetId) => {
     if (!user?.id) {
-      alert('로그인이 필요합니다.');
+      alert('로그인이 필요해요.');
       return;
     }
 
-    if (!window.confirm('예산을 삭제하시겠습니까?')) {
+    if (!window.confirm('정말 이 예산을 삭제할까요?')) {
       return;
     }
 
     try {
       await budgetService.deleteBudget(budgetId, user.id);
-      alert('예산이 삭제되었습니다.');
+      alert('예산이 삭제되었어요.');
       fetchBudgets();
       fetchCurrentBudget();
     } catch (error) {
       console.error('Failed to delete budget:', error);
-      alert('예산 삭제에 실패했습니다.');
+      alert('예산을 삭제하지 못했어요. 다시 시도해주세요.');
     }
   };
 
@@ -116,14 +118,7 @@ const BudgetPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-4xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <p className="text-gray-600">예산 정보를 불러오는 중...</p>
-        </div>
-      </div>
-    );
+    return <Loading text="예산 정보를 불러오고 있어요..." />;
   }
 
   return (
@@ -132,33 +127,33 @@ const BudgetPage = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 mb-2">예산 관리</h1>
-            <p className="text-gray-600">월별 구독 예산을 설정하고 관리하세요</p>
+            <p className="text-gray-600">월별 구독 예산을 설정하고 관리해요</p>
           </div>
-          <button
+          <Button
+            variant={showForm ? 'secondary' : 'primary'}
             onClick={() => setShowForm(!showForm)}
-            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
           >
-            {showForm ? '취소' : '예산 설정'}
-          </button>
+            {showForm ? '취소' : '예산 설정하기'}
+          </Button>
         </div>
 
         {/* 현재 월 예산 카드 */}
         {currentBudget && (
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 mb-8 text-white">
-            <h2 className="text-xl font-semibold mb-2">
+          <div className="bg-gradient-to-r from-primary-500 to-primary-600 rounded-xl shadow-lg p-8 mb-8 text-white">
+            <h2 className="text-lg font-medium mb-3 opacity-90">
               {currentBudget.year}년 {currentBudget.month}월 예산
             </h2>
-            <p className="text-3xl font-bold">{formatCurrency(currentBudget.monthlyLimit)}</p>
-            <p className="text-sm mt-2 opacity-90">
-              현재 월 예산입니다. 초과 시 알림을 받습니다.
+            <p className="text-5xl font-bold mb-4">{formatCurrency(currentBudget.monthlyLimit)}</p>
+            <p className="text-sm opacity-90">
+              초과하면 알림으로 알려드려요
             </p>
           </div>
         )}
 
         {/* 예산 설정 폼 */}
         {showForm && (
-          <div className="bg-white rounded-lg shadow-md p-6 mb-8 border border-gray-200">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4">예산 설정</h2>
+          <Card className="mb-8">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">예산 설정하기</h2>
             <form onSubmit={handleSubmit}>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div>
@@ -205,30 +200,28 @@ const BudgetPage = () => {
                   />
                 </div>
               </div>
-              <button
+              <Button
                 type="submit"
-                className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-semibold"
+                variant="primary"
+                className="w-full"
               >
-                예산 설정
-              </button>
+                설정하기
+              </Button>
             </form>
-          </div>
+          </Card>
         )}
 
         {/* 예산 목록 */}
-        <div className="bg-white rounded-lg shadow-md border border-gray-200">
-          <div className="p-6 border-b border-gray-200">
+        <Card>
+          <div className="pb-6 border-b border-gray-200">
             <h2 className="text-xl font-semibold text-gray-900">예산 목록</h2>
           </div>
           {budgets.length === 0 ? (
-            <div className="p-12 text-center">
-              <div className="text-6xl mb-4">💰</div>
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                설정된 예산이 없습니다
-              </h3>
-              <p className="text-gray-600">
-                예산을 설정하여 구독 지출을 관리하세요.
-              </p>
+            <div className="py-12">
+              <EmptyState
+                title="설정된 예산이 없어요"
+                description="예산을 설정하면 지출을 효과적으로 관리할 수 있어요"
+              />
             </div>
           ) : (
             <div className="divide-y divide-gray-200">
@@ -239,25 +232,26 @@ const BudgetPage = () => {
                       <h3 className="text-lg font-semibold text-gray-900 mb-1">
                         {budget.year}년 {budget.month}월
                       </h3>
-                      <p className="text-2xl font-bold text-blue-600">
+                      <p className="text-2xl font-bold text-primary-600">
                         {formatCurrency(budget.monthlyLimit)}
                       </p>
                       <p className="text-sm text-gray-500 mt-2">
                         설정일: {new Date(budget.createdAt).toLocaleDateString('ko-KR')}
                       </p>
                     </div>
-                    <button
+                    <Button
+                      variant="danger"
+                      size="sm"
                       onClick={() => handleDelete(budget.id)}
-                      className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg transition font-medium"
                     >
-                      삭제
-                    </button>
+                      삭제하기
+                    </Button>
                   </div>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </Card>
       </div>
     </div>
   );
