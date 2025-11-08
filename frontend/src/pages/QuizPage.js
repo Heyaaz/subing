@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
 import { useAuth } from '../context/AuthContext';
+import { Button, Badge } from '../components/common';
+import Loading from '../components/Loading';
 import TierLimitModal from '../components/TierLimitModal';
 
 const QuizPage = () => {
@@ -42,7 +44,7 @@ const QuizPage = () => {
     }
 
     if (!user?.id) {
-      alert('로그인이 필요합니다.');
+      alert('로그인이 필요해요.');
       return;
     }
 
@@ -63,7 +65,7 @@ const QuizPage = () => {
       if (errorMessage.includes('GPT 추천 사용 횟수') || errorMessage.includes('업그레이드')) {
         setShowTierModal(true);
       } else {
-        alert('추천을 생성하는데 실패했습니다. 다시 시도해주세요.');
+        alert('추천을 생성하지 못했어요. 다시 시도해주세요.');
       }
     } finally {
       setLoading(false);
@@ -84,7 +86,7 @@ const QuizPage = () => {
                   onClick={() => handleInterestToggle(interest)}
                   className={`p-6 rounded-lg border-2 transition font-semibold ${
                     quizData.interests.includes(interest)
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -106,7 +108,7 @@ const QuizPage = () => {
                   onClick={() => setQuizData(prev => ({ ...prev, budget }))}
                   className={`w-full p-6 rounded-lg border-2 transition text-left ${
                     quizData.budget === budget
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -134,7 +136,7 @@ const QuizPage = () => {
                   onClick={() => setQuizData(prev => ({ ...prev, purpose: option.value }))}
                   className={`w-full p-6 rounded-lg border-2 transition text-left ${
                     quizData.purpose === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
@@ -174,13 +176,13 @@ const QuizPage = () => {
                   }}
                   className={`w-full p-6 rounded-lg border-2 transition flex items-center justify-between ${
                     quizData.priorities.includes(priority.value)
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-primary-500 bg-primary-50 text-primary-700'
                       : 'border-gray-200 hover:border-gray-300 text-gray-700'
                   }`}
                 >
                   <span className="text-xl font-semibold">{priority.label}</span>
                   {quizData.priorities.includes(priority.value) && (
-                    <span className="bg-blue-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
+                    <span className="bg-primary-500 text-white rounded-full w-8 h-8 flex items-center justify-center text-sm font-bold">
                       {quizData.priorities.indexOf(priority.value) + 1}
                     </span>
                   )}
@@ -196,15 +198,7 @@ const QuizPage = () => {
   };
 
   if (loading) {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-          <h2 className="text-2xl font-bold mb-2 text-gray-900">AI가 당신을 위한 추천을 생성하고 있습니다...</h2>
-          <p className="text-gray-600">잠시만 기다려주세요 (약 5-10초 소요)</p>
-        </div>
-      </div>
-    );
+    return <Loading text="AI가 맞춤 추천을 생성하고 있어요... (약 5-10초 소요)" />;
   }
 
   return (
@@ -214,11 +208,11 @@ const QuizPage = () => {
         <div className="mb-8">
           <div className="flex justify-between mb-2">
             <span className="text-sm text-gray-600">진행률</span>
-            <span className="text-sm font-medium text-blue-600">{step}/4</span>
+            <span className="text-sm font-medium text-primary-600">{step}/4</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
-              className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+              className="bg-primary-500 h-2 rounded-full transition-all duration-300"
               style={{ width: `${(step / 4) * 100}%` }}
             />
           </div>
@@ -229,28 +223,28 @@ const QuizPage = () => {
 
         {/* 버튼 */}
         <div className="flex justify-between mt-8">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => setStep(step - 1)}
             disabled={step === 1}
-            className="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             이전
-          </button>
+          </Button>
 
           {step < 4 ? (
-            <button
+            <Button
+              variant="primary"
               onClick={() => setStep(step + 1)}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
             >
               다음
-            </button>
+            </Button>
           ) : (
-            <button
+            <Button
+              variant="primary"
               onClick={handleSubmit}
-              className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
             >
               추천 받기
-            </button>
+            </Button>
           )}
         </div>
       </div>
