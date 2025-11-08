@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllPlans, getAllServices, createPlan, updatePlan, deletePlan } from '../../services/adminService';
+import { Button, Badge } from '../../components/common';
+import Loading from '../../components/Loading';
 
 const AdminPlansPage = () => {
   const navigate = useNavigate();
@@ -33,7 +35,7 @@ const AdminPlansPage = () => {
     } catch (error) {
       console.error('데이터 조회 실패:', error);
       if (error.response?.status === 403) {
-        alert('관리자 권한이 필요합니다.');
+        alert('관리자 권한이 필요해요.');
         navigate('/');
       }
     } finally {
@@ -77,40 +79,36 @@ const AdminPlansPage = () => {
 
       if (editingPlan) {
         await updatePlan(editingPlan.id, submitData);
-        alert('플랜이 수정되었습니다.');
+        alert('플랜이 수정되었어요.');
       } else {
         await createPlan(submitData);
-        alert('플랜이 추가되었습니다.');
+        alert('플랜이 추가되었어요.');
       }
       setShowModal(false);
       fetchData();
     } catch (error) {
       console.error('플랜 저장 실패:', error);
-      alert('플랜 저장에 실패했습니다.');
+      alert('플랜을 저장하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   const handleDelete = async (planId) => {
-    if (!window.confirm('정말로 이 플랜을 삭제하시겠습니까?')) {
+    if (!window.confirm('정말로 이 플랜을 삭제할까요?')) {
       return;
     }
 
     try {
       await deletePlan(planId);
-      alert('플랜이 삭제되었습니다.');
+      alert('플랜이 삭제되었어요.');
       fetchData();
     } catch (error) {
       console.error('플랜 삭제 실패:', error);
-      alert('플랜 삭제에 실패했습니다.');
+      alert('플랜을 삭제하지 못했어요. 다시 시도해주세요.');
     }
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">로딩 중...</div>
-      </div>
-    );
+    return <Loading text="플랜 목록을 불러오고 있어요..." />;
   }
 
   return (
@@ -125,18 +123,18 @@ const AdminPlansPage = () => {
               </p>
             </div>
             <div className="flex gap-3">
-              <button
+              <Button
+                variant="primary"
                 onClick={handleCreate}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
               >
-                + 플랜 추가
-              </button>
-              <button
+                + 플랜 추가하기
+              </Button>
+              <Button
+                variant="secondary"
                 onClick={() => navigate('/admin')}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
               >
                 대시보드로
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -184,21 +182,21 @@ const AdminPlansPage = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {plan.isPopular && (
-                      <span className="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                      <Badge variant="warning">
                         인기
-                      </span>
+                      </Badge>
                     )}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                     <button
                       onClick={() => handleEdit(plan)}
-                      className="text-blue-600 hover:text-blue-900 mr-4"
+                      className="text-primary-600 hover:text-primary-900 mr-4 font-medium"
                     >
                       수정
                     </button>
                     <button
                       onClick={() => handleDelete(plan.id)}
-                      className="text-red-600 hover:text-red-900"
+                      className="text-error-600 hover:text-error-900 font-medium"
                     >
                       삭제
                     </button>
@@ -230,7 +228,7 @@ const AdminPlansPage = () => {
                       setFormData({ ...formData, serviceId: e.target.value })
                     }
                     required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                   >
                     {services.map((service) => (
                       <option key={service.id} value={service.id}>
@@ -252,7 +250,7 @@ const AdminPlansPage = () => {
                     setFormData({ ...formData, planName: e.target.value })
                   }
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -267,7 +265,7 @@ const AdminPlansPage = () => {
                     setFormData({ ...formData, monthlyPrice: e.target.value })
                   }
                   required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -281,7 +279,7 @@ const AdminPlansPage = () => {
                     setFormData({ ...formData, description: e.target.value })
                   }
                   rows={2}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -295,7 +293,7 @@ const AdminPlansPage = () => {
                     setFormData({ ...formData, features: e.target.value })
                   }
                   rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
                 />
               </div>
 
@@ -314,19 +312,21 @@ const AdminPlansPage = () => {
               </div>
 
               <div className="flex gap-3 mt-6">
-                <button
+                <Button
                   type="submit"
-                  className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                  variant="primary"
+                  className="flex-1"
                 >
-                  {editingPlan ? '수정' : '추가'}
-                </button>
-                <button
+                  {editingPlan ? '수정하기' : '추가하기'}
+                </Button>
+                <Button
                   type="button"
+                  variant="secondary"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-300"
+                  className="flex-1"
                 >
                   취소
-                </button>
+                </Button>
               </div>
             </form>
           </div>
