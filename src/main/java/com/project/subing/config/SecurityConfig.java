@@ -34,6 +34,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/v1/users/signup", "/api/v1/users/login").permitAll()
+                .requestMatchers("/ws/**").permitAll()  // WebSocket 엔드포인트 허용
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )

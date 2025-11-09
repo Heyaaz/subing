@@ -18,6 +18,7 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserRepository userRepository;
+    private final NotificationWebSocketService notificationWebSocketService;
 
     public Notification createNotification(Long userId, NotificationType type, String title,
                                           String message, Long relatedSubscriptionId) {
@@ -39,7 +40,16 @@ public class NotificationService {
                 .relatedSubscriptionId(relatedSubscriptionId)
                 .build();
 
-        return notificationRepository.save(notification);
+        Notification savedNotification = notificationRepository.save(notification);
+
+        // WebSocket을 통해 실시간 알림 전송
+        notificationWebSocketService.sendNotificationToUser(userId, savedNotification);
+
+        // 읽지 않은 알림 개수 업데이트 전송
+        Long unreadCount = getUnreadCount(userId);
+        notificationWebSocketService.sendUnreadCountToUser(userId, unreadCount);
+
+        return savedNotification;
     }
 
     @Transactional(readOnly = true)
@@ -66,10 +76,17 @@ public class NotificationService {
         }
 
         notification.markAsRead();
+
+        // 읽지 않은 알림 개수 업데이트 전송
+        Long unreadCount = getUnreadCount(userId);
+        notificationWebSocketService.sendUnreadCountToUser(userId, unreadCount);
     }
 
     public void markAllAsRead(Long userId) {
         List<Notification> unreadNotifications = getUnreadNotifications(userId);
         unreadNotifications.forEach(Notification::markAsRead);
+
+        // 읽지 않은 알림 개수 업데이트 전송 (모두 읽음 처리 후 0이 됨)
+        notificationWebSocketService.sendUnreadCountToUser(userId, 0L);
     }
 }
