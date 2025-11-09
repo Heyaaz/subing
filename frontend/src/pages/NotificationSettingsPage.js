@@ -62,6 +62,10 @@ const NotificationSettingsPage = () => {
         return '💸';
       case 'UNUSED_SUBSCRIPTION':
         return '📦';
+      case 'PRICE_CHANGE':
+        return '💰';
+      case 'SUBSCRIPTION_RENEWAL':
+        return '🔄';
       default:
         return '📢';
     }
@@ -77,6 +81,10 @@ const NotificationSettingsPage = () => {
         return 'bg-error-50 text-error-600';
       case 'UNUSED_SUBSCRIPTION':
         return 'bg-gray-100 text-gray-600';
+      case 'PRICE_CHANGE':
+        return 'bg-yellow-50 text-yellow-600';
+      case 'SUBSCRIPTION_RENEWAL':
+        return 'bg-primary-50 text-primary-600';
       default:
         return 'bg-gray-100 text-gray-600';
     }
@@ -118,6 +126,8 @@ const NotificationSettingsPage = () => {
                         {setting.notificationType === 'PAYMENT_DUE_1DAY' && '결제일 1일 전에 알림을 받아요'}
                         {setting.notificationType === 'BUDGET_EXCEEDED' && '월별 예산을 초과하면 알림을 받아요'}
                         {setting.notificationType === 'UNUSED_SUBSCRIPTION' && '90일 이상 미사용 구독에 대해 알림을 받아요'}
+                        {setting.notificationType === 'PRICE_CHANGE' && '구독 중인 서비스의 가격이 변경되면 알림을 받아요'}
+                        {setting.notificationType === 'SUBSCRIPTION_RENEWAL' && '구독이 갱신되면 알림을 받아요'}
                       </p>
                     </div>
                   </div>

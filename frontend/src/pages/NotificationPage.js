@@ -60,6 +60,10 @@ const NotificationPage = () => {
         return '💸';
       case 'UNUSED_SUBSCRIPTION':
         return '📦';
+      case 'PRICE_CHANGE':
+        return '💰';
+      case 'SUBSCRIPTION_RENEWAL':
+        return '🔄';
       default:
         return '📢';
     }
@@ -75,6 +79,10 @@ const NotificationPage = () => {
         return 'bg-error-50 border-error-200';
       case 'UNUSED_SUBSCRIPTION':
         return 'bg-gray-50 border-gray-200';
+      case 'PRICE_CHANGE':
+        return 'bg-yellow-50 border-yellow-200';
+      case 'SUBSCRIPTION_RENEWAL':
+        return 'bg-primary-50 border-primary-200';
       default:
         return 'bg-gray-50 border-gray-200';
     }
