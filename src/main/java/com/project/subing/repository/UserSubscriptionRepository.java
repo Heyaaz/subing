@@ -28,4 +28,8 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     // 카테고리 + 활성 상태 필터링
     @Query("SELECT us FROM UserSubscription us JOIN FETCH us.service s WHERE us.user.id = :userId AND s.category = :category AND us.isActive = :isActive")
     List<UserSubscription> findByUserIdAndServiceCategoryAndIsActive(@Param("userId") Long userId, @Param("category") ServiceCategory category, @Param("isActive") Boolean isActive);
+
+    // 특정 서비스를 구독 중인 활성 사용자 찾기
+    @Query("SELECT us FROM UserSubscription us JOIN FETCH us.user u WHERE us.service.id = :serviceId AND us.isActive = true")
+    List<UserSubscription> findActiveSubscriptionsByServiceId(@Param("serviceId") Long serviceId);
 }

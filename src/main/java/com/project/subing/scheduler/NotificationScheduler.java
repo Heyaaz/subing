@@ -183,4 +183,45 @@ public class NotificationScheduler {
 
         log.info("미사용 구독 감지 알림 체크 완료");
     }
+
+    // 매일 자정에 실행 (구독 갱신 알림 체크)
+    @Scheduled(cron = "0 0 0 * * *")
+    public void checkSubscriptionRenewalNotifications() {
+        log.info("구독 갱신 알림 체크 시작");
+
+        List<UserSubscription> activeSubscriptions = userSubscriptionRepository.findAll()
+                .stream()
+                .filter(UserSubscription::getIsActive)
+                .toList();
+
+        LocalDate today = LocalDate.now();
+        int todayDay = today.getDayOfMonth();
+
+        for (UserSubscription subscription : activeSubscriptions) {
+            try {
+                // 오늘이 결제일인 구독 찾기
+                if (subscription.getBillingDate().equals(todayDay)) {
+                    String title = "구독 갱신 완료";
+                    String message = String.format("%s 구독이 오늘 갱신되었습니다. 결제 금액: %,d원",
+                            subscription.getService().getServiceName(),
+                            subscription.getMonthlyPrice());
+
+                    notificationService.createNotification(
+                            subscription.getUser().getId(),
+                            NotificationType.SUBSCRIPTION_RENEWAL,
+                            title,
+                            message,
+                            subscription.getId()
+                    );
+
+                    log.info("구독 갱신 알림 생성 - subscriptionId: {}, userId: {}",
+                            subscription.getId(), subscription.getUser().getId());
+                }
+            } catch (Exception e) {
+                log.error("구독 갱신 알림 생성 실패 - subscriptionId: {}", subscription.getId(), e);
+            }
+        }
+
+        log.info("구독 갱신 알림 체크 완료");
+    }
 }
