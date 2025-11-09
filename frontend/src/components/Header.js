@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { notificationService } from '../services/notificationService';
+import useWebSocket from '../hooks/useWebSocket';
 
 const Header = () => {
   const { user, logout, isAuthenticated } = useAuth();
@@ -10,11 +11,19 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
 
+  // WebSocket 훅 사용
+  const {
+    connected,
+    connect,
+    disconnect,
+    subscribeToUnreadCount
+  } = useWebSocket(user?.id);
+
   const handleLogout = () => {
     logout();
   };
 
-  // 읽지 않은 알림 개수 조회
+  // 초기 읽지 않은 알림 개수 조회
   const fetchUnreadCount = async () => {
     if (!isAuthenticated || !user?.id) return;
 
@@ -26,18 +35,32 @@ const Header = () => {
     }
   };
 
-  // 30초마다 폴링
+  // WebSocket 연결 및 실시간 알림 구독
   useEffect(() => {
-    if (isAuthenticated) {
-      fetchUnreadCount(); // 초기 로드
+    if (isAuthenticated && user?.id) {
+      // 초기 읽지 않은 알림 개수 조회
+      fetchUnreadCount();
 
-      const interval = setInterval(() => {
-        fetchUnreadCount();
-      }, 30000); // 30초
-
-      return () => clearInterval(interval);
+      // WebSocket 연결
+      connect();
     }
-  }, [isAuthenticated, user?.id]);
+
+    return () => {
+      // 컴포넌트 언마운트 시 연결 해제
+      disconnect();
+    };
+  }, [isAuthenticated, user?.id, connect, disconnect]);
+
+  // WebSocket 연결 후 구독
+  useEffect(() => {
+    if (connected && user?.id) {
+      // 읽지 않은 알림 개수 구독
+      subscribeToUnreadCount((count) => {
+        console.log('실시간 읽지 않은 알림 개수 업데이트:', count);
+        setUnreadCount(count);
+      });
+    }
+  }, [connected, user?.id, subscribeToUnreadCount]);
 
   const navigationItems = [
     { path: '/dashboard', label: '대시보드' },
