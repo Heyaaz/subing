@@ -17,6 +17,9 @@ import BudgetPage from './pages/BudgetPage';
 import OptimizationPage from './pages/OptimizationPage';
 import TierPage from './pages/TierPage';
 import ServiceReviewsPage from './pages/ServiceReviewsPage';
+import PreferenceTestPage from './pages/preferences/PreferenceTestPage';
+import PreferenceResultPage from './pages/preferences/PreferenceResultPage';
+import PreferenceProfilePage from './pages/preferences/PreferenceProfilePage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import AdminUsersPage from './pages/admin/AdminUsersPage';
 import AdminServicesPage from './pages/admin/AdminServicesPage';
@@ -209,6 +212,35 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <ServiceReviewsPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+
+            {/* Preference Test Routes */}
+            <Route
+              path="/preferences/test"
+              element={
+                <PrivateRoute>
+                  <PreferenceTestPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/preferences/result"
+              element={
+                <PrivateRoute>
+                  <PreferenceResultPage />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/preferences/profile"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <PreferenceProfilePage />
                   </div>
                 </PrivateRoute>
               }
