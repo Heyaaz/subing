@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import preferenceService from '../../services/preferenceService';
+import { authService } from '../../services/authService';
 
-// Mock 프로필 데이터
+// Mock 프로필 데이터 (API 실패 시 사용하지 않음)
 const MOCK_PROFILE = {
   profileType: {
     emoji: '🎬',
@@ -32,28 +34,52 @@ function PreferenceProfilePage() {
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Mock API 호출 (나중에 실제 API로 대체)
     loadProfile();
   }, []);
 
   const loadProfile = async () => {
     try {
-      // Mock 데이터 로드
-      setTimeout(() => {
-        setProfile(MOCK_PROFILE);
-        setLoading(false);
-      }, 500);
+      const user = authService.getCurrentUser();
+      if (!user || !user.id) {
+        navigate('/login');
+        return;
+      }
+
+      const response = await preferenceService.getProfile(user.id);
+      if (response.data && response.data.data) {
+        setProfile(response.data.data);
+      } else {
+        setProfile(null);
+      }
+      setLoading(false);
     } catch (error) {
       console.error('프로필 로드 실패:', error);
+      // 404 에러는 프로필이 없는 것으로 처리
+      if (error.response?.status === 404 || error.response?.data?.message?.includes('찾을 수 없습니다')) {
+        setProfile(null);
+      } else {
+        setError('프로필을 불러오는 중 오류가 발생했어요');
+      }
       setLoading(false);
     }
   };
 
-  const handleRetakeTest = () => {
+  const handleRetakeTest = async () => {
     if (window.confirm('기존 결과를 삭제하고 다시 검사하시겠습니까?')) {
-      navigate('/preferences/test');
+      try {
+        const user = authService.getCurrentUser();
+        if (user && user.id) {
+          await preferenceService.deleteProfile(user.id);
+        }
+        navigate('/preferences/test');
+      } catch (error) {
+        console.error('프로필 삭제 실패:', error);
+        // 삭제 실패해도 테스트 페이지로 이동
+        navigate('/preferences/test');
+      }
     }
   };
 
@@ -63,6 +89,28 @@ function PreferenceProfilePage() {
         <div className="text-center space-y-4">
           <div className="animate-spin text-6xl">⏳</div>
           <p className="text-lg text-gray-600">프로필 로딩 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+            <div className="text-6xl">❌</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">오류 발생</h2>
+              <p className="text-gray-600">{error}</p>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+            >
+              홈으로 돌아가기
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -95,12 +143,27 @@ function PreferenceProfilePage() {
     );
   }
 
+  // 백엔드 응답 데이터 매핑
+  const scores = {
+    content: profile.contentScore,
+    price: profile.priceSensitivityScore,
+    health: profile.healthScore,
+    selfDev: profile.selfDevelopmentScore,
+    digital: profile.digitalToolScore
+  };
+
   const labels = {
     content: '콘텐츠 소비',
     price: '가성비 선호',
     health: '건강 관심',
     selfDev: '자기계발',
     digital: '디지털 도구'
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('ko-KR');
   };
 
   return (
@@ -113,13 +176,13 @@ function PreferenceProfilePage() {
           </h1>
 
           <div className="space-y-3">
-            <div className="text-7xl">{profile.profileType.emoji}</div>
+            <div className="text-7xl">{profile.emoji}</div>
             <div>
               <h2 className="text-2xl font-bold text-gray-900">
-                {profile.profileType.name}
+                {profile.profileName}
               </h2>
               <p className="text-lg text-blue-600 font-semibold mt-2">
-                "{profile.profileType.description}"
+                "{profile.quote}"
               </p>
             </div>
           </div>
@@ -132,7 +195,7 @@ function PreferenceProfilePage() {
           </h3>
 
           <div className="space-y-4">
-            {Object.entries(profile.scores).map(([key, value]) => (
+            {Object.entries(scores).map(([key, value]) => (
               <div key={key}>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-gray-700">
@@ -154,63 +217,44 @@ function PreferenceProfilePage() {
         </div>
 
         {/* 관심 카테고리 */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            🏷️ 관심 카테고리
-          </h3>
-          <div className="flex flex-wrap gap-2">
-            {profile.interestedCategories.map((category, index) => (
-              <span
-                key={index}
-                className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
-              >
-                #{category}
-              </span>
-            ))}
+        {profile.interestedCategories && profile.interestedCategories.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              🏷️ 관심 카테고리
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {profile.interestedCategories.map((category, index) => (
+                <span
+                  key={index}
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                >
+                  #{category}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* 월 예산 범위 */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            💰 월 예산 범위
-          </h3>
-          <div className="bg-purple-50 rounded-2xl p-6">
-            <p className="text-lg font-bold text-purple-600">
-              {profile.budget}
-            </p>
+        {profile.budgetRange && (
+          <div className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              💰 월 예산 범위
+            </h3>
+            <div className="bg-purple-50 rounded-2xl p-6">
+              <p className="text-lg font-bold text-purple-600">
+                {profile.budgetRange}
+              </p>
+            </div>
           </div>
-        </div>
-
-        {/* 추천받은 서비스 */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 space-y-4">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            💡 추천받은 서비스 ({profile.recommendations.length}개)
-          </h3>
-          <div className="space-y-3">
-            {profile.recommendations.map((service, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-xl p-4 flex items-center gap-3"
-              >
-                <span className="text-3xl">{service.emoji}</span>
-                <div>
-                  <div className="font-semibold text-gray-900">
-                    {service.name}
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    {service.price}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* 마지막 검사일 */}
-        <div className="text-center text-sm text-gray-500">
-          마지막 검사: {profile.lastTestDate}
-        </div>
+        {profile.updatedAt && (
+          <div className="text-center text-sm text-gray-500">
+            마지막 검사: {formatDate(profile.updatedAt)}
+          </div>
+        )}
 
         {/* 액션 버튼 */}
         <div className="flex gap-3">

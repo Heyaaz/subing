@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import preferenceService from '../../services/preferenceService';
+import { authService } from '../../services/authService';
 
-// Mock 프로필 타입 (나중에 백엔드에서 계산)
+// Mock 프로필 타입 (API 실패 시 사용)
 const PROFILE_TYPES = {
   CONTENT_COLLECTOR: {
     emoji: '🎬',
@@ -53,14 +55,9 @@ const PROFILE_TYPES = {
 function PreferenceResultPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [profileType, setProfileType] = useState(null);
-  const [scores, setScores] = useState({
-    content: 0,
-    price: 0,
-    health: 0,
-    selfDev: 0,
-    digital: 0
-  });
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     // location.state에서 answers 가져오기
@@ -72,27 +69,31 @@ function PreferenceResultPage() {
       return;
     }
 
-    // Mock 점수 계산 (나중에 백엔드에서 처리)
-    calculateScores(answers);
+    // 답변 제출 및 결과 받기
+    submitAnswers(answers);
   }, [location, navigate]);
 
-  const calculateScores = (answers) => {
-    // Mock 계산 로직 (실제로는 백엔드에서 처리)
-    // 간단하게 랜덤으로 프로필 타입 결정
-    const types = Object.keys(PROFILE_TYPES);
-    const randomType = types[Math.floor(Math.random() * types.length)];
+  const submitAnswers = async (answers) => {
+    try {
+      const user = authService.getCurrentUser();
+      if (!user || !user.id) {
+        navigate('/login');
+        return;
+      }
 
-    setProfileType(PROFILE_TYPES[randomType]);
-    setScores({
-      content: Math.floor(Math.random() * 100),
-      price: Math.floor(Math.random() * 100),
-      health: Math.floor(Math.random() * 100),
-      selfDev: Math.floor(Math.random() * 100),
-      digital: Math.floor(Math.random() * 100)
-    });
+      const response = await preferenceService.submitAnswers(user.id, { answers });
+      if (response.data && response.data.data) {
+        setResult(response.data.data);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('답변 제출 실패:', error);
+      setError('분석 중 오류가 발생했어요. 다시 시도해주세요.');
+      setLoading(false);
+    }
   };
 
-  if (!profileType) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -102,6 +103,48 @@ function PreferenceResultPage() {
       </div>
     );
   }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+            <div className="text-6xl">❌</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">분석 실패</h2>
+              <p className="text-gray-600">{error}</p>
+            </div>
+            <button
+              onClick={() => navigate('/preferences/test')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+            >
+              다시 시도하기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!result) {
+    return null;
+  }
+
+  // 백엔드 응답 데이터 매핑
+  const profileType = {
+    emoji: result.emoji,
+    name: result.profileName,
+    description: result.quote,
+    fullDescription: result.description
+  };
+
+  const scores = {
+    content: result.contentScore,
+    price: result.priceSensitivityScore,
+    health: result.healthScore,
+    selfDev: result.selfDevelopmentScore,
+    digital: result.digitalToolScore
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-8 px-4">
@@ -173,45 +216,38 @@ function PreferenceResultPage() {
           </div>
 
           {/* 예상 디지털 월세 */}
-          <div className="bg-purple-50 rounded-2xl p-6 mt-6">
-            <div className="flex items-center justify-between">
-              <span className="text-gray-700 font-medium">
-                💸 예상 디지털 월세
-              </span>
-              <span className="text-xl font-bold text-purple-600">
-                {profileType.budget}
-              </span>
+          {result.budgetRange && (
+            <div className="bg-purple-50 rounded-2xl p-6 mt-6">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700 font-medium">
+                  💸 예상 디지털 월세
+                </span>
+                <span className="text-xl font-bold text-purple-600">
+                  {result.budgetRange}
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 관심 카테고리 */}
+        {result.interestedCategories && result.interestedCategories.length > 0 && (
+          <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+              🏷️ 관심 카테고리
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {result.interestedCategories.map((category, index) => (
+                <span
+                  key={index}
+                  className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-medium"
+                >
+                  #{category}
+                </span>
+              ))}
             </div>
           </div>
-        </div>
-
-        {/* 맞춤 추천 서비스 */}
-        <div className="bg-white rounded-3xl shadow-xl p-8 space-y-6">
-          <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
-            💡 딱 맞는 추천 서비스
-          </h3>
-
-          <div className="space-y-3">
-            {profileType.recommendations.map((service, index) => (
-              <div
-                key={index}
-                className="bg-gray-50 rounded-xl p-4 flex items-center justify-between hover:bg-gray-100 transition-colors"
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-3xl">{service.emoji}</span>
-                  <div>
-                    <div className="font-semibold text-gray-900">
-                      {service.name}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {service.price}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        )}
 
         {/* 액션 버튼 */}
         <div className="flex gap-3">

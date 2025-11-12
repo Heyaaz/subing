@@ -111,7 +111,7 @@ public class PlanService {
         List<UserSubscription> activeSubscriptions =
             userSubscriptionRepository.findActiveSubscriptionsByServiceId(plan.getService().getId());
 
-        String serviceName = plan.getService().getName();
+        String serviceName = plan.getService().getServiceName();
         String planName = plan.getPlanName();
         int priceDiff = newPrice - oldPrice;
         String changeType = priceDiff > 0 ? "인상" : "인하";

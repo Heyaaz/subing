@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import preferenceService from '../../services/preferenceService';
 
-// Mock 데이터 (나중에 API로 대체)
+// Mock 데이터 (API 로드 실패 시 사용)
 const MOCK_QUESTIONS = [
   {
     id: 1,
@@ -155,9 +156,35 @@ function PreferenceTestPage() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState([]);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [questions, setQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const currentQuestion = MOCK_QUESTIONS[currentIndex];
-  const progress = ((currentIndex + 1) / MOCK_QUESTIONS.length) * 100;
+  // 질문 목록 로드
+  useEffect(() => {
+    loadQuestions();
+  }, []);
+
+  const loadQuestions = async () => {
+    try {
+      const response = await preferenceService.getQuestions();
+      if (response.data && response.data.data) {
+        setQuestions(response.data.data);
+      } else {
+        // API 응답 형식이 다를 경우 Mock 데이터 사용
+        setQuestions(MOCK_QUESTIONS);
+      }
+      setLoading(false);
+    } catch (error) {
+      console.error('질문 로드 실패:', error);
+      // API 실패 시 Mock 데이터 사용
+      setQuestions(MOCK_QUESTIONS);
+      setLoading(false);
+    }
+  };
+
+  const currentQuestion = questions[currentIndex];
+  const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
 
   // 시작하기
   const handleStart = () => {
@@ -178,7 +205,7 @@ function PreferenceTestPage() {
       setSelectedOption(null);
 
       // 마지막 질문이면 결과 페이지로
-      if (currentIndex === MOCK_QUESTIONS.length - 1) {
+      if (currentIndex === questions.length - 1) {
         // 답변 데이터를 state로 전달
         navigate('/preferences/result', { state: { answers: newAnswers } });
       } else {
@@ -195,6 +222,41 @@ function PreferenceTestPage() {
       setAnswers(answers.slice(0, -1));
     }
   };
+
+  // 로딩 중
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="animate-spin text-6xl">⏳</div>
+          <p className="text-lg text-gray-600">질문을 불러오는 중...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 질문이 없을 경우
+  if (questions.length === 0) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+        <div className="max-w-md w-full">
+          <div className="bg-white rounded-3xl shadow-xl p-8 text-center space-y-6">
+            <div className="text-6xl">❌</div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">질문을 불러올 수 없어요</h2>
+              <p className="text-gray-600">잠시 후 다시 시도해주세요</p>
+            </div>
+            <button
+              onClick={() => navigate('/')}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-4 px-6 rounded-xl transition-all duration-200"
+            >
+              홈으로 돌아가기
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // 시작 화면
   if (showIntro) {
@@ -227,7 +289,7 @@ function PreferenceTestPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg">📊</span>
-                  <span>총 12개 질문</span>
+                  <span>총 {questions.length}개 질문</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-lg">🎁</span>
@@ -268,7 +330,7 @@ function PreferenceTestPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm font-medium text-gray-600">
-              Question {currentIndex + 1}/{MOCK_QUESTIONS.length}
+              Question {currentIndex + 1}/{questions.length}
             </span>
             <span className="text-sm font-medium text-blue-600">
               {Math.round(progress)}%
