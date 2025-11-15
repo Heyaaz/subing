@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { recommendationService } from '../services/recommendationService';
+import preferenceService from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
 import { Button, Badge } from '../components/common';
 import Loading from '../components/Loading';
@@ -12,6 +13,7 @@ const QuizPage = () => {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [showTierModal, setShowTierModal] = useState(false);
+  const [hasPreference, setHasPreference] = useState(false);
 
   const [quizData, setQuizData] = useState({
     interests: [],
@@ -19,6 +21,20 @@ const QuizPage = () => {
     purpose: '',
     priorities: []
   });
+
+  // 성향 테스트 완료 여부 확인
+  useEffect(() => {
+    const checkPreference = async () => {
+      if (!user?.id) return;
+      try {
+        const profile = await preferenceService.getProfile(user.id);
+        setHasPreference(!!profile);
+      } catch (error) {
+        setHasPreference(false);
+      }
+    };
+    checkPreference();
+  }, [user]);
 
   const handleInterestToggle = (interest) => {
     setQuizData(prev => ({
@@ -204,6 +220,30 @@ const QuizPage = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
+        {/* 성향 테스트 안내 배너 */}
+        {!hasPreference && (
+          <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">💡</span>
+              <div className="flex-1">
+                <h3 className="font-semibold text-blue-900 mb-1">
+                  성향 테스트를 먼저 하시면 더 정확한 추천을 받을 수 있어요
+                </h3>
+                <p className="text-sm text-blue-700 mb-3">
+                  AI가 회원님의 성향을 분석하여 맞춤형 서비스를 추천해드려요
+                </p>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => navigate('/preferences/test')}
+                >
+                  성향 테스트 하러 가기
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* 진행률 표시 */}
         <div className="mb-8">
           <div className="flex justify-between mb-2">
