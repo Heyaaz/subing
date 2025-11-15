@@ -1,5 +1,6 @@
 package com.project.subing.domain.recommendation.entity;
 
+import com.project.subing.domain.recommendation.enums.PromptVersion;
 import com.project.subing.domain.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -28,6 +29,10 @@ public class RecommendationResult {
 
     @Column(name = "result_data", columnDefinition = "TEXT", nullable = false)
     private String resultData;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "prompt_version", length = 20)
+    private PromptVersion promptVersion; // A/B 테스트용 프롬프트 버전
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
