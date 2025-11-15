@@ -35,5 +35,22 @@ export const recommendationService = {
     } catch (error) {
       throw error.response?.data || error;
     }
+  },
+
+  // 추천 클릭 추적
+  async trackClick(recommendationId, userId, serviceId) {
+    try {
+      const response = await api.post(
+        `/recommendations/${recommendationId}/click`,
+        null,
+        {
+          params: { userId, serviceId }
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.error('Click tracking error:', error);
+      // 클릭 추적 실패는 사용자에게 보여주지 않음 (UX 저해 방지)
+    }
   }
 };

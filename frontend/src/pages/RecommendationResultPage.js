@@ -36,6 +36,15 @@ const RecommendationResultPage = () => {
     }
   };
 
+  const handleServiceClick = async (serviceId) => {
+    // 클릭 추적 (백그라운드에서 실행)
+    if (user?.id && recommendationId && serviceId) {
+      await recommendationService.trackClick(recommendationId, user.id, serviceId);
+    }
+    // 구독 관리 페이지로 이동
+    navigate('/subscriptions');
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-4xl mx-auto">
@@ -102,7 +111,7 @@ const RecommendationResultPage = () => {
               {/* 구독 추가 버튼 */}
               <Button
                 variant="primary"
-                onClick={() => navigate('/subscriptions')}
+                onClick={() => handleServiceClick(rec.serviceId)}
                 className="w-full"
               >
                 구독 관리 페이지로 이동하기
