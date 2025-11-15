@@ -43,4 +43,13 @@ public class RecommendationController {
         gptRecommendationService.saveFeedback(recommendationId, userId, isHelpful, comment);
         return ResponseEntity.ok(ApiResponse.success(null, "피드백이 저장되었습니다."));
     }
+
+    @PostMapping("/{recommendationId}/click")
+    public ResponseEntity<ApiResponse<Void>> trackClick(
+            @PathVariable Long recommendationId,
+            @RequestParam Long userId,
+            @RequestParam Long serviceId) {
+        gptRecommendationService.trackClick(recommendationId, userId, serviceId);
+        return ResponseEntity.ok(ApiResponse.success(null, "클릭이 기록되었습니다."));
+    }
 }

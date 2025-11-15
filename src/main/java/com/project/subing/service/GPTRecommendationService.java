@@ -2,15 +2,20 @@ package com.project.subing.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.project.subing.domain.preference.entity.UserPreference;
+import com.project.subing.domain.recommendation.entity.RecommendationClick;
 import com.project.subing.domain.recommendation.entity.RecommendationFeedback;
 import com.project.subing.domain.recommendation.entity.RecommendationResult;
+import com.project.subing.domain.recommendation.enums.PromptVersion;
 import com.project.subing.domain.service.entity.ServiceEntity;
 import com.project.subing.domain.user.entity.User;
 import com.project.subing.dto.recommendation.QuizRequest;
 import com.project.subing.dto.recommendation.RecommendationResponse;
+import com.project.subing.repository.RecommendationClickRepository;
 import com.project.subing.repository.RecommendationFeedbackRepository;
 import com.project.subing.repository.RecommendationResultRepository;
 import com.project.subing.repository.ServiceRepository;
+import com.project.subing.repository.UserPreferenceRepository;
 import com.project.subing.repository.UserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -45,8 +50,10 @@ public class GPTRecommendationService {
 
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
+    private final UserPreferenceRepository userPreferenceRepository;
     private final RecommendationResultRepository recommendationResultRepository;
     private final RecommendationFeedbackRepository recommendationFeedbackRepository;
+    private final RecommendationClickRepository recommendationClickRepository;
     private final TierLimitService tierLimitService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -65,11 +72,17 @@ public class GPTRecommendationService {
             throw new RuntimeException("GPT 추천 사용 횟수를 초과했습니다. PRO 티어로 업그레이드하세요.");
         }
 
+        // 0-1. 사용자 성향 데이터 조회 (Optional)
+        UserPreference userPreference = userPreferenceRepository.findByUserId(userId).orElse(null);
+
+        // 0-2. A/B 테스트를 위한 랜덤 프롬프트 버전 선택
+        PromptVersion promptVersion = PromptVersion.random();
+
         // 1. 캐시된 추천 결과 조회 (없으면 GPT API 호출)
-        RecommendationResponse result = getRecommendationFromCache(quiz);
+        RecommendationResponse result = getRecommendationFromCache(userId, quiz, userPreference, promptVersion);
 
         // 2. DB에 저장
-        saveRecommendationResult(userId, quiz, result);
+        saveRecommendationResult(userId, quiz, result, promptVersion);
 
         // 3. 사용량 증가
         tierLimitService.incrementGptRecommendation(userId);
@@ -77,13 +90,13 @@ public class GPTRecommendationService {
         return result;
     }
 
-    @Cacheable(value = "gptRecommendations", key = "#quiz")
-    public RecommendationResponse getRecommendationFromCache(QuizRequest quiz) {
+    @Cacheable(value = "gptRecommendations", key = "#userId + '_' + #quiz.hashCode() + '_' + (#userPreference != null ? #userPreference.id : 'no-pref') + '_' + #promptVersion.name()")
+    public RecommendationResponse getRecommendationFromCache(Long userId, QuizRequest quiz, UserPreference userPreference, PromptVersion promptVersion) {
         // 1. 프롬프트 생성
-        String prompt = buildPrompt(quiz);
+        String prompt = buildPrompt(quiz, userPreference);
 
         // 2. GPT API 호출
-        String response = callGPTAPI(prompt);
+        String response = callGPTAPI(prompt, promptVersion);
 
         // 3. JSON 파싱
         return parseResponse(response);
@@ -118,7 +131,30 @@ public class GPTRecommendationService {
         recommendationFeedbackRepository.save(feedback);
     }
 
-    private String buildPrompt(QuizRequest quiz) {
+    /**
+     * 추천 결과 클릭 추적
+     * (프론트엔드에서 사용자가 추천 서비스를 클릭했을 때 호출)
+     */
+    public void trackClick(Long recommendationId, Long userId, Long serviceId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
+
+        RecommendationResult recommendationResult = recommendationResultRepository.findById(recommendationId)
+                .orElseThrow(() -> new RuntimeException("추천 결과를 찾을 수 없습니다."));
+
+        ServiceEntity service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new RuntimeException("서비스를 찾을 수 없습니다."));
+
+        RecommendationClick click = RecommendationClick.builder()
+                .recommendationResult(recommendationResult)
+                .user(user)
+                .service(service)
+                .build();
+
+        recommendationClickRepository.save(click);
+    }
+
+    private String buildPrompt(QuizRequest quiz, UserPreference userPreference) {
         List<ServiceEntity> services = serviceRepository.findAll();
 
         StringBuilder serviceList = new StringBuilder();
@@ -132,13 +168,36 @@ public class GPTRecommendationService {
             ));
         }
 
+        // 성향 데이터 섹션 생성
+        StringBuilder preferenceSection = new StringBuilder();
+        if (userPreference != null) {
+            preferenceSection.append("\n사용자 성향 프로필:\n");
+            preferenceSection.append(String.format("- 프로필 타입: %s (%s)\n",
+                userPreference.getProfileType().name(),
+                userPreference.getProfileType().getDisplayName()));
+            preferenceSection.append(String.format("- 콘텐츠 소비 점수: %d/100\n", userPreference.getContentScore()));
+            preferenceSection.append(String.format("- 가성비 선호 점수: %d/100\n", userPreference.getPriceSensitivityScore()));
+            preferenceSection.append(String.format("- 건강 관심 점수: %d/100\n", userPreference.getHealthScore()));
+            preferenceSection.append(String.format("- 자기계발 점수: %d/100\n", userPreference.getSelfDevelopmentScore()));
+            preferenceSection.append(String.format("- 디지털 도구 점수: %d/100\n", userPreference.getDigitalToolScore()));
+
+            if (userPreference.getInterestedCategories() != null) {
+                preferenceSection.append(String.format("- 관심 카테고리: %s\n", userPreference.getInterestedCategories()));
+            }
+            if (userPreference.getBudgetRange() != null) {
+                preferenceSection.append(String.format("- 예산 범위: %s\n", userPreference.getBudgetRange()));
+            }
+
+            preferenceSection.append("\n위 성향 데이터를 적극 활용하여 사용자에게 가장 적합한 서비스를 추천해주세요.\n");
+        }
+
         return String.format("""
             사용자 입력:
             - 관심 분야: %s
             - 월 예산: %,d원
             - 사용 목적: %s
             - 중요도: %s
-
+            %s
             사용 가능한 서비스 목록:
             %s
 
@@ -166,15 +225,19 @@ public class GPTRecommendationService {
                 quiz.getBudget(),
                 quiz.getPurpose(),
                 String.join(", ", quiz.getPriorities()),
+                preferenceSection.toString(),
                 serviceList.toString()
         );
     }
 
-    private String callGPTAPI(String prompt) {
+    private String callGPTAPI(String prompt, PromptVersion promptVersion) {
+        // 프롬프트 버전에 따라 시스템 프롬프트 선택
+        String systemPrompt = promptVersion.getSystemPrompt();
+
         Map<String, Object> requestBody = Map.of(
                 "model", model,
                 "messages", List.of(
-                        Map.of("role", "system", "content", SYSTEM_PROMPT),
+                        Map.of("role", "system", "content", systemPrompt),
                         Map.of("role", "user", "content", prompt)
                 ),
                 "max_tokens", maxTokens,
@@ -206,7 +269,7 @@ public class GPTRecommendationService {
         }
     }
 
-    private void saveRecommendationResult(Long userId, QuizRequest quiz, RecommendationResponse result) {
+    private void saveRecommendationResult(Long userId, QuizRequest quiz, RecommendationResponse result, PromptVersion promptVersion) {
         try {
             User user = userRepository.findById(userId)
                     .orElseThrow(() -> new RuntimeException("사용자를 찾을 수 없습니다."));
@@ -218,6 +281,7 @@ public class GPTRecommendationService {
                     .user(user)
                     .quizData(quizJson)
                     .resultData(resultJson)
+                    .promptVersion(promptVersion) // A/B 테스트용 프롬프트 버전 저장
                     .build();
 
             recommendationResultRepository.save(entity);
@@ -225,16 +289,4 @@ public class GPTRecommendationService {
             throw new RuntimeException("추천 결과 저장 실패: " + e.getMessage(), e);
         }
     }
-
-    private static final String SYSTEM_PROMPT = """
-        당신은 구독 서비스 추천 전문가입니다.
-        사용자의 선호도와 예산을 꼼꼼히 분석하여 최적의 구독 서비스를 추천해주세요.
-        추천 시 다음을 반드시 포함하세요:
-        - 추천 이유 (구체적이고 설득력 있게)
-        - 장점 3가지
-        - 단점 2가지
-        - 실용적인 팁
-
-        출력은 반드시 유효한 JSON 형식이어야 합니다.
-        """;
 }
