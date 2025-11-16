@@ -1,6 +1,5 @@
 package com.project.subing.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.project.subing.domain.preference.entity.UserPreference;
 import com.project.subing.domain.recommendation.entity.RecommendationClick;
@@ -17,37 +16,24 @@ import com.project.subing.repository.RecommendationResultRepository;
 import com.project.subing.repository.ServiceRepository;
 import com.project.subing.repository.UserPreferenceRepository;
 import com.project.subing.repository.UserRepository;
-import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.chat.prompt.Prompt;
+import org.springframework.ai.chat.messages.Message;
+import org.springframework.ai.chat.messages.SystemMessage;
+import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
 
-import java.time.Duration;
 import java.util.List;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
 public class GPTRecommendationService {
 
-    @Value("${openai.api.key}")
-    private String apiKey;
-
-    @Value("${openai.model}")
-    private String model;
-
-    @Value("${openai.max-tokens}")
-    private Integer maxTokens;
-
-    @Value("${openai.temperature}")
-    private Double temperature;
-
-    private WebClient webClient;
-
+    private final ChatModel chatModel;
     private final ServiceRepository serviceRepository;
     private final UserRepository userRepository;
     private final UserPreferenceRepository userPreferenceRepository;
@@ -56,15 +42,6 @@ public class GPTRecommendationService {
     private final RecommendationClickRepository recommendationClickRepository;
     private final TierLimitService tierLimitService;
     private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @PostConstruct
-    public void init() {
-        this.webClient = WebClient.builder()
-                .baseUrl("https://api.openai.com")
-                .defaultHeader("Authorization", "Bearer " + apiKey)
-                .defaultHeader("Content-Type", "application/json")
-                .build();
-    }
 
     public RecommendationResponse getRecommendations(Long userId, QuizRequest quiz) {
         // 0. 티어 제한 체크
@@ -234,27 +211,18 @@ public class GPTRecommendationService {
         // 프롬프트 버전에 따라 시스템 프롬프트 선택
         String systemPrompt = promptVersion.getSystemPrompt();
 
-        Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "messages", List.of(
-                        Map.of("role", "system", "content", systemPrompt),
-                        Map.of("role", "user", "content", prompt)
-                ),
-                "max_tokens", maxTokens,
-                "temperature", temperature
-        );
-
         try {
-            String response = webClient.post()
-                    .uri("/v1/chat/completions")
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .block(Duration.ofSeconds(30));
+            // Spring AI ChatModel을 사용한 API 호출
+            List<Message> messages = List.of(
+                    new SystemMessage(systemPrompt),
+                    new UserMessage(prompt)
+            );
 
-            // GPT 응답에서 content 추출
-            JsonNode root = objectMapper.readTree(response);
-            return root.at("/choices/0/message/content").asText();
+            Prompt gptPrompt = new Prompt(messages);
+            return chatModel.call(gptPrompt)
+                    .getResult()
+                    .getOutput()
+                    .getText();
 
         } catch (Exception e) {
             throw new RuntimeException("GPT API 호출 실패: " + e.getMessage(), e);
