@@ -1,17 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { recommendationService } from '../services/recommendationService';
 import preferenceService from '../services/preferenceService';
 import { useAuth } from '../context/AuthContext';
-import { Button, Badge } from '../components/common';
-import Loading from '../components/Loading';
+import { Button } from '../components/common';
 import TierLimitModal from '../components/TierLimitModal';
 
 const QuizPage = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState(1);
-  const [loading, setLoading] = useState(false);
   const [showTierModal, setShowTierModal] = useState(false);
   const [hasPreference, setHasPreference] = useState(false);
 
@@ -45,7 +42,7 @@ const QuizPage = () => {
     }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
     if (quizData.interests.length === 0) {
       alert('관심 분야를 하나 이상 선택해주세요.');
       return;
@@ -64,28 +61,13 @@ const QuizPage = () => {
       return;
     }
 
-    try {
-      setLoading(true);
-      const response = await recommendationService.getAIRecommendations(user.id, quizData);
-
-      navigate('/recommendation/result', {
-        state: {
-          recommendations: response.data,
-          recommendationId: response.data.id // 추천 ID 전달
-        }
-      });
-    } catch (error) {
-      console.error('Get recommendations error:', error);
-      // 티어 제한 에러인 경우 모달 표시
-      const errorMessage = error?.message || error?.error || '';
-      if (errorMessage.includes('GPT 추천 사용 횟수') || errorMessage.includes('업그레이드')) {
-        setShowTierModal(true);
-      } else {
-        alert('추천을 생성하지 못했어요. 다시 시도해주세요.');
+    // 스트리밍 페이지로 이동 (데이터 전달)
+    navigate('/recommendation/streaming', {
+      state: {
+        userId: user.id,
+        quizData: quizData
       }
-    } finally {
-      setLoading(false);
-    }
+    });
   };
 
   const renderStep = () => {
@@ -212,10 +194,6 @@ const QuizPage = () => {
         return null;
     }
   };
-
-  if (loading) {
-    return <Loading text="AI가 맞춤 추천을 생성하고 있어요... (약 5-10초 소요)" />;
-  }
 
   return (
     <div className="container mx-auto px-4 py-8">
