@@ -10,6 +10,7 @@ import StatisticsPage from './pages/StatisticsPage';
 import ComparisonPage from './pages/ComparisonPage';
 import QuizPage from './pages/QuizPage';
 import RecommendationResultPage from './pages/RecommendationResultPage';
+import StreamingRecommendationPage from './pages/StreamingRecommendationPage';
 import RecommendationHistoryPage from './pages/RecommendationHistoryPage';
 import NotificationPage from './pages/NotificationPage';
 import NotificationSettingsPage from './pages/NotificationSettingsPage';
@@ -124,6 +125,17 @@ function App() {
                   <div className="min-h-screen bg-gray-50">
                     <Header />
                     <QuizPage />
+                  </div>
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/recommendation/streaming"
+              element={
+                <PrivateRoute>
+                  <div className="min-h-screen bg-gray-50">
+                    <Header />
+                    <StreamingRecommendationPage />
                   </div>
                 </PrivateRoute>
               }
