@@ -9,6 +9,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import java.util.List;
 
@@ -25,6 +26,16 @@ public class RecommendationController {
             @Valid @RequestBody QuizRequest request) {
         RecommendationResponse response = gptRecommendationService.getRecommendations(userId, request);
         return ResponseEntity.ok(ApiResponse.success(response, "AI 추천이 완료되었습니다."));
+    }
+
+    /**
+     * AI 추천 스트리밍 (실시간 타이핑 효과)
+     */
+    @PostMapping("/ai/stream")
+    public SseEmitter streamAIRecommendations(
+            @RequestParam Long userId,
+            @Valid @RequestBody QuizRequest request) {
+        return gptRecommendationService.getRecommendationsStream(userId, request);
     }
 
     @GetMapping("/history/{userId}")
