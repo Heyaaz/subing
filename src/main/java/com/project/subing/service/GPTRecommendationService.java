@@ -25,8 +25,13 @@ import org.springframework.ai.chat.messages.UserMessage;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
+import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,6 +47,7 @@ public class GPTRecommendationService {
     private final RecommendationClickRepository recommendationClickRepository;
     private final TierLimitService tierLimitService;
     private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
 
     public RecommendationResponse getRecommendations(Long userId, QuizRequest quiz) {
         // 0. 티어 제한 체크
@@ -77,6 +83,123 @@ public class GPTRecommendationService {
 
         // 3. JSON 파싱
         return parseResponse(response);
+    }
+
+    /**
+     * SSE를 통한 스트리밍 추천 (실시간 타이핑 효과)
+     */
+    public SseEmitter getRecommendationsStream(Long userId, QuizRequest quiz) {
+        // 0. 티어 제한 체크
+        if (!tierLimitService.canUseGptRecommendation(userId)) {
+            throw new RuntimeException("GPT 추천 사용 횟수를 초과했습니다. PRO 티어로 업그레이드하세요.");
+        }
+
+        // SSE Emitter 생성 (타임아웃 5분)
+        SseEmitter emitter = new SseEmitter(300000L);
+
+        // 비동기 처리
+        executorService.execute(() -> {
+            try {
+                // 1. 사용자 성향 데이터 조회
+                UserPreference userPreference = userPreferenceRepository.findByUserId(userId).orElse(null);
+
+                // 2. 프롬프트 버전 선택
+                PromptVersion promptVersion = PromptVersion.random();
+
+                // 3. 프롬프트 생성
+                String prompt = buildPrompt(quiz, userPreference);
+                String systemPrompt = promptVersion.getSystemPrompt();
+
+                List<Message> messages = List.of(
+                        new SystemMessage(systemPrompt),
+                        new UserMessage(prompt)
+                );
+
+                Prompt gptPrompt = new Prompt(messages);
+
+                // 4. GPT 스트리밍 호출
+                Flux<String> streamFlux = chatModel.stream(gptPrompt)
+                        .map(chatResponse -> {
+                            if (chatResponse.getResult() != null &&
+                                chatResponse.getResult().getOutput() != null) {
+                                return chatResponse.getResult().getOutput().getText();
+                            }
+                            return "";
+                        });
+
+                // 5. 전체 응답 누적용
+                StringBuilder fullResponse = new StringBuilder();
+
+                // 6. 각 청크를 SSE로 전송
+                streamFlux.subscribe(
+                        chunk -> {
+                            try {
+                                if (chunk != null && !chunk.isEmpty()) {
+                                    fullResponse.append(chunk);
+                                    emitter.send(SseEmitter.event()
+                                            .name("message")
+                                            .data(chunk));
+                                }
+                            } catch (IOException e) {
+                                emitter.completeWithError(e);
+                            }
+                        },
+                        error -> {
+                            // 에러 발생 시
+                            try {
+                                emitter.send(SseEmitter.event()
+                                        .name("error")
+                                        .data("GPT API 호출 실패: " + error.getMessage()));
+                            } catch (IOException e) {
+                                // ignore
+                            }
+                            emitter.completeWithError(error);
+                        },
+                        () -> {
+                            // 완료 시
+                            try {
+                                // 완료 이벤트 전송
+                                emitter.send(SseEmitter.event()
+                                        .name("done")
+                                        .data("complete"));
+
+                                // DB에 저장 (비동기)
+                                String responseText = fullResponse.toString();
+                                RecommendationResponse parsedResponse = parseResponse(responseText);
+                                saveRecommendationResult(userId, quiz, parsedResponse, promptVersion);
+
+                                // 사용량 증가
+                                tierLimitService.incrementGptRecommendation(userId);
+
+                                emitter.complete();
+                            } catch (Exception e) {
+                                emitter.completeWithError(e);
+                            }
+                        }
+                );
+
+            } catch (Exception e) {
+                try {
+                    emitter.send(SseEmitter.event()
+                            .name("error")
+                            .data("추천 생성 실패: " + e.getMessage()));
+                } catch (IOException ioException) {
+                    // ignore
+                }
+                emitter.completeWithError(e);
+            }
+        });
+
+        // 타임아웃 및 에러 핸들러
+        emitter.onTimeout(() -> {
+            emitter.complete();
+        });
+
+        emitter.onError((error) -> {
+            emitter.complete();
+        });
+
+        return emitter;
     }
 
     @Transactional(readOnly = true)
