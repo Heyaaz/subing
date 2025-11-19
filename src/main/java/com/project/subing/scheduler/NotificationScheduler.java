@@ -9,6 +9,7 @@ import com.project.subing.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,6 +29,7 @@ public class NotificationScheduler {
 
     // 매일 자정에 실행 (결제일 알림 체크)
     @Scheduled(cron = "0 0 0 * * *")
+    @PreAuthorize("permitAll()")
     public void checkPaymentDueNotifications() {
         log.info("결제일 알림 체크 시작");
 
@@ -86,6 +88,7 @@ public class NotificationScheduler {
 
     // 매일 자정에 실행 (예산 초과 알림 체크)
     @Scheduled(cron = "0 0 0 * * *")
+    @PreAuthorize("permitAll()")
     public void checkBudgetExceededNotifications() {
         log.info("예산 초과 알림 체크 시작");
 
@@ -145,6 +148,7 @@ public class NotificationScheduler {
 
     // 매주 월요일 자정에 실행 (미사용 구독 감지 알림 체크)
     @Scheduled(cron = "0 0 0 * * MON")
+    @PreAuthorize("permitAll()")
     public void checkUnusedSubscriptionNotifications() {
         log.info("미사용 구독 감지 알림 체크 시작");
 
@@ -186,6 +190,7 @@ public class NotificationScheduler {
 
     // 매일 자정에 실행 (구독 갱신 알림 체크)
     @Scheduled(cron = "0 0 0 * * *")
+    @PreAuthorize("permitAll()")
     public void checkSubscriptionRenewalNotifications() {
         log.info("구독 갱신 알림 체크 시작");
 

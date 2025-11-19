@@ -2,6 +2,8 @@ package com.project.subing.domain.preference.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 /**
  * 성향 테스트 질문 옵션
@@ -31,11 +33,13 @@ public class PreferenceOption {
     @Column(length = 10)
     private String emoji; // 이모지 (예: "🪶")
 
-    @Column(nullable = false, columnDefinition = "JSON")
+    @Column(nullable = false)
+    @JdbcTypeCode(SqlTypes.JSON)
     private String scoreImpact; // 점수 영향 (JSON 형식)
     // 예시: {"contentScore": 25, "priceSensitivityScore": -5}
 
-    @Column(columnDefinition = "JSON")
+    @Column
+    @JdbcTypeCode(SqlTypes.JSON)
     private String categoryTags; // 카테고리 태그 (JSON 배열)
     // 예시: ["STREAMING", "VIDEO"]
 }

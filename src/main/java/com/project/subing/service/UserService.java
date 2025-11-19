@@ -1,6 +1,8 @@
 package com.project.subing.service;
 
 import com.project.subing.domain.user.entity.User;
+import com.project.subing.domain.user.entity.UserRole;
+import com.project.subing.domain.user.entity.UserTier;
 import com.project.subing.domain.user.entity.UserTierUsage;
 import com.project.subing.dto.admin.AdminUserResponse;
 import com.project.subing.dto.admin.UserUpdateRequest;
@@ -39,6 +41,8 @@ public class UserService {
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .name(request.getName())
+                .tier(UserTier.FREE)
+                .role(UserRole.USER)
                 .build();
 
         User savedUser = userRepository.save(user);
