@@ -48,6 +48,8 @@ public class SubscriptionControllerTest {
                 .name("테스트 사용자")
                 .email("test@example.com")
                 .password("password123!")
+                .tier(com.project.subing.domain.user.entity.UserTier.FREE)
+                .role(com.project.subing.domain.user.entity.UserRole.USER)
                 .build();
         User savedUser = userRepository.save(testUser);
         testUserId = savedUser.getId();

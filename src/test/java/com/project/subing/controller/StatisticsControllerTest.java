@@ -20,6 +20,8 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.List;
 
+import static com.project.subing.domain.user.entity.UserRole.*;
+import static com.project.subing.domain.user.entity.UserTier.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -60,6 +62,8 @@ class StatisticsControllerTest {
                 .email("statistics-test-" + System.currentTimeMillis() + "@example.com")
                 .name("통계 테스트 사용자")
                 .password("password123!")
+                .tier(FREE)
+                .role(USER)
                 .build();
         testUser = userRepository.save(testUser);
         
