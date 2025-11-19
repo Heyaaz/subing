@@ -43,6 +43,7 @@ out/
 .DS_Store
 .venv
 *.log
+*.hprof
 
 ### Node.js ###
 node_modules/
