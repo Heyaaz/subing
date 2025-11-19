@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Header from './components/Header';
 import LoginPage from './pages/LoginPage';
@@ -27,26 +27,42 @@ import AdminServicesPage from './pages/admin/AdminServicesPage';
 import AdminPlansPage from './pages/admin/AdminPlansPage';
 import Loading from './components/Loading';
 
+import PageTransition from './components/PageTransition';
+
 // Private Route 컴포넌트
 const PrivateRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+  const location = useLocation();
+
   if (loading) {
     return <Loading text="인증 확인 중..." />;
   }
-  
-  return isAuthenticated ? children : <Navigate to="/login" />;
+
+  return isAuthenticated ? (
+    <PageTransition key={location.pathname}>
+      {children}
+    </PageTransition>
+  ) : (
+    <Navigate to="/login" />
+  );
 };
 
 // Public Route 컴포넌트 (로그인된 사용자는 대시보드로 리다이렉트)
 const PublicRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
-  
+  const location = useLocation();
+
   if (loading) {
     return <Loading text="인증 확인 중..." />;
   }
-  
-  return !isAuthenticated ? children : <Navigate to="/dashboard" />;
+
+  return !isAuthenticated ? (
+    <PageTransition key={location.pathname}>
+      {children}
+    </PageTransition>
+  ) : (
+    <Navigate to="/dashboard" />
+  );
 };
 
 function App() {
@@ -56,26 +72,26 @@ function App() {
         <div className="min-h-screen bg-gray-50">
           <Routes>
             {/* Public Routes */}
-            <Route 
-              path="/login" 
+            <Route
+              path="/login"
               element={
                 <PublicRoute>
                   <LoginPage />
                 </PublicRoute>
-              } 
+              }
             />
-            <Route 
-              path="/signup" 
+            <Route
+              path="/signup"
               element={
                 <PublicRoute>
                   <SignupPage />
                 </PublicRoute>
-              } 
+              }
             />
-            
+
             {/* Private Routes with Header */}
-            <Route 
-              path="/dashboard" 
+            <Route
+              path="/dashboard"
               element={
                 <PrivateRoute>
                   <div className="min-h-screen bg-gray-50">
@@ -83,10 +99,10 @@ function App() {
                     <Dashboard />
                   </div>
                 </PrivateRoute>
-              } 
+              }
             />
-            <Route 
-              path="/subscriptions" 
+            <Route
+              path="/subscriptions"
               element={
                 <PrivateRoute>
                   <div className="min-h-screen bg-gray-50">
@@ -94,7 +110,7 @@ function App() {
                     <SubscriptionPage />
                   </div>
                 </PrivateRoute>
-              } 
+              }
             />
             <Route
               path="/statistics"
