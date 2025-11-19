@@ -31,6 +31,12 @@ const Header = () => {
     { path: '/tier', label: '티어' },
   ];
 
+  // ADMIN 사용자에게만 관리자 메뉴 추가
+  const isAdmin = user?.role === 'ADMIN';
+  const allNavigationItems = isAdmin
+    ? [...navigationItems, { path: '/admin', label: '관리자', isAdmin: true }]
+    : navigationItems;
+
   return (
     <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-lg transition-all duration-200">
       <div className="container mx-auto px-4 md:px-6">
@@ -49,12 +55,15 @@ const Header = () => {
           {isAuthenticated && (
             <>
               <nav className="hidden md:flex items-center space-x-1">
-                {navigationItems.map((item) => (
+                {allNavigationItems.map((item) => (
                   <Link
                     key={item.path}
                     to={item.path}
-                    className={`px-4 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 ${location.pathname === item.path
+                    className={`px-4 py-2.5 rounded-xl text-[15px] font-semibold transition-all duration-200 ${
+                      location.pathname.startsWith(item.path)
                         ? 'bg-primary-50 text-primary-600'
+                        : item.isAdmin
+                        ? 'text-error-600 hover:text-error-700 hover:bg-error-50'
                         : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                       }`}
                   >
@@ -107,13 +116,16 @@ const Header = () => {
         {isAuthenticated && isMobileMenuOpen && (
           <div className="md:hidden border-t border-gray-100 py-4 bg-white/95 backdrop-blur-sm absolute left-0 right-0 px-4 shadow-lg rounded-b-2xl">
             <nav className="space-y-1">
-              {navigationItems.map((item) => (
+              {allNavigationItems.map((item) => (
                 <Link
                   key={item.path}
                   to={item.path}
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-3.5 rounded-xl text-[15px] font-semibold transition-colors duration-200 ${location.pathname === item.path
+                  className={`block px-4 py-3.5 rounded-xl text-[15px] font-semibold transition-colors duration-200 ${
+                    location.pathname.startsWith(item.path)
                       ? 'bg-primary-50 text-primary-600'
+                      : item.isAdmin
+                      ? 'text-error-600 hover:text-error-700 hover:bg-error-50'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
                     }`}
                 >

@@ -44,8 +44,8 @@ public class AdminStatisticsService {
                 .filter(user -> user.getTier() == UserTier.PRO)
                 .count();
 
-        // 2. 구독 통계
-        List<UserSubscription> allSubscriptions = subscriptionRepository.findAll();
+        // 2. 구독 통계 - Service와 함께 fetch join
+        List<UserSubscription> allSubscriptions = subscriptionRepository.findAllWithService();
         long activeSubscriptions = allSubscriptions.stream()
                 .filter(UserSubscription::getIsActive)
                 .count();

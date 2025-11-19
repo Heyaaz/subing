@@ -1,5 +1,7 @@
 package com.project.subing.dto.user;
 
+import com.project.subing.domain.user.entity.UserRole;
+import com.project.subing.domain.user.entity.UserTier;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -17,5 +19,7 @@ public class UserResponse {
     private String email;
     private String name;
     private String token;
+    private UserRole role;
+    private UserTier tier;
     private LocalDateTime createdAt;
 }

@@ -59,6 +59,8 @@ public class UserService {
                 .email(savedUser.getEmail())
                 .name(savedUser.getName())
                 .token(token)
+                .role(savedUser.getRole())
+                .tier(savedUser.getTier())
                 .createdAt(savedUser.getCreatedAt())
                 .build();
     }
@@ -85,6 +87,8 @@ public class UserService {
                 .email(user.getEmail())
                 .name(user.getName())
                 .token(token)
+                .role(user.getRole())
+                .tier(user.getTier())
                 .createdAt(user.getCreatedAt())
                 .build();
     }

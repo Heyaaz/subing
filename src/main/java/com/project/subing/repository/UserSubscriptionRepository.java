@@ -32,4 +32,8 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     // 특정 서비스를 구독 중인 활성 사용자 찾기
     @Query("SELECT us FROM UserSubscription us JOIN FETCH us.user u WHERE us.service.id = :serviceId AND us.isActive = true")
     List<UserSubscription> findActiveSubscriptionsByServiceId(@Param("serviceId") Long serviceId);
+
+    // 관리자용: 모든 구독을 Service와 함께 조회 (LAZY 로딩 방지)
+    @Query("SELECT DISTINCT us FROM UserSubscription us LEFT JOIN FETCH us.service")
+    List<UserSubscription> findAllWithService();
 }
